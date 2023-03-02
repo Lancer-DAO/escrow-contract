@@ -237,7 +237,12 @@ export type MonoProgram = {
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "isCancel",
+          "type": "bool"
+        }
+      ]
     },
     {
       "name": "cancelFeature",
@@ -646,7 +651,12 @@ export const IDL: MonoProgram = {
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "isCancel",
+          "type": "bool"
+        }
+      ]
     },
     {
       "name": "cancelFeature",

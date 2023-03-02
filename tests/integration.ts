@@ -772,6 +772,7 @@ describe("create feature account", () => {
           acc.unixTimestamp,
           creator.publicKey,
           creator.publicKey,
+          true,
           program
         );
         tx = await provider.sendAndConfirm(new Transaction().add(voteToCancelIx), [creator]);
@@ -789,6 +790,7 @@ describe("create feature account", () => {
           acc.unixTimestamp,
           creator.publicKey,
           submitter.publicKey,
+          true,
           program
         );
         tx = await provider.sendAndConfirm(new Transaction().add(voteToCancelIx), [submitter]);
@@ -908,6 +910,7 @@ describe("create feature account", () => {
           acc.unixTimestamp,
           creator.publicKey,
           creator.publicKey,
+          true,
           program
         );
 
@@ -952,11 +955,41 @@ describe("create feature account", () => {
           assert.equal((error as AnchorError).error.errorMessage, "Cannot Cancel Feature")
         }
 
+        // submitter votes to not cancel feature(voteToCancel)
+        try{
+          let voteToCancelIxBySubmitter = await voteToCancelInstruction(
+              acc.unixTimestamp,
+              creator.publicKey,
+              submitter.publicKey,
+              false,
+              program
+            );
+
+            tx = await provider.sendAndConfirm(
+              new Transaction().add(voteToCancelIxByCreator).add(voteToCancelIxBySubmitter), 
+              [creator, submitter]
+            );
+    
+          await program.methods.cancelFeature()
+          .accounts({
+            creator: creator.publicKey,
+            creatorTokenAccount: creator_wsol_account.address,
+            featureDataAccount: feature_data_account,
+            featureTokenAccount: feature_token_account,
+            programAuthority: program_authority,
+            tokenProgram: TOKEN_PROGRAM_ID
+          }).signers([]);
+      }catch(err)
+      {
+        assert.equal((err as AnchorError).error.errorMessage, "Cannot Cancel Features")
+      }
+
         // submitter votes to cancel Feature(VoteToCancel)
         let voteToCancelIxBySubmitter = await voteToCancelInstruction(
           acc.unixTimestamp,
           creator.publicKey,
           submitter.publicKey,
+          true,
           program
         );
 

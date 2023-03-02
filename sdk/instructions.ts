@@ -233,6 +233,7 @@ export const voteToCancelInstruction = async (
   timestamp: string,
   creator: PublicKey,
   voter: PublicKey,
+  isCancel: boolean,
   program: Program<MonoProgram>
 ): Promise<TransactionInstruction> =>  {
 
@@ -242,7 +243,7 @@ export const voteToCancelInstruction = async (
     program
   );
 
-  return await program.methods.voteToCancel()
+  return await program.methods.voteToCancel(isCancel)
   .accounts({
     creator: creator,
     voter: voter,

@@ -237,7 +237,12 @@
           "isSigner": false
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "isCancel",
+          "type": "bool"
+        }
+      ]
     },
     {
       "name": "cancelFeature",
