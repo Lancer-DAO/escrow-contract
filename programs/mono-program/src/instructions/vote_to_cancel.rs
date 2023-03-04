@@ -24,11 +24,11 @@ pub struct VoteToCancel<'info>
     pub feature_data_account: Account<'info, FeatureDataAccount>,
 }
 
-pub fn handler(ctx: Context<VoteToCancel>, is_cancel: bool) -> Result<()>
+pub fn handler(ctx: Context<VoteToCancel>, is_cancel: bool, is_creator: bool) -> Result<()>
 {
     let feature_data_account = &mut ctx.accounts.feature_data_account;
 
-    if ctx.accounts.voter.key() == feature_data_account.creator.key()
+    if ctx.accounts.voter.key() == feature_data_account.creator.key() && is_creator
     {
         feature_data_account.funder_cancel = is_cancel;
     }
