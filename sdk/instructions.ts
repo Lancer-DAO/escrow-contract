@@ -25,8 +25,8 @@ import {
     Transaction,
     TransactionInstruction,
   } from '@solana/web3.js';
-import { findFeatureAccount, findFeatureTokenAccount, findProgramAuthority } from "./pda";
-import { WSOL_ADDRESS } from "./constants";
+import { findFeatureAccount, findFeatureTokenAccount, findLancerCompanyTokens, findLancerCompleterTokens, findLancerProgramAuthority, findLancerTokenAccount, findProgramAuthority, findProgramMintAuthority } from "./pda";
+import { LANCER_ADMIN, WSOL_ADDRESS } from "./constants";
   
 
 export const createFeatureFundingAccountInstruction = async(
@@ -192,6 +192,8 @@ export const denyRequestInstruction = async (
 
 export const approveRequestInstruction = async (
   timestamp: string,
+  payout_completer_tokens_account: PublicKey,
+  creator_company_tokens_account: PublicKey,
   creator: PublicKey,
   submitter: PublicKey,
   submitter_token_account: PublicKey,
@@ -216,17 +218,114 @@ export const approveRequestInstruction = async (
       program,
   );
 
+  const [lancer_dao_token_account] = await findLancerTokenAccount(
+    mint,
+    program
+  );
 
-  return await program.methods.approveRequest()
+  const [lancer_token_program_authority] = await findLancerProgramAuthority(program);
+
+  const [lancer_completer_tokens] = await findLancerCompleterTokens(program);
+  const [lancer_company_tokens] = await findLancerCompanyTokens(program);
+  const [program_mint_authority, mint_bump] = await findProgramMintAuthority(program);
+
+  return await program.methods.approveRequest(mint_bump)
   .accounts({
     creator: creator,
     submitter: submitter,
+    lancerCompleterTokens: lancer_completer_tokens,
+    lancerCompanyTokens: lancer_company_tokens,
     payoutAccount: submitter_token_account,
     featureDataAccount: feature_data_account,
+    creatorCompanyTokensAccount: creator_company_tokens_account,
+    payoutCompleterTokensAccount: payout_completer_tokens_account,
     featureTokenAccount: feature_token_account,
     programAuthority: program_authority,
+    programMintAuthority: program_mint_authority,
+    lancerDaoTokenAccount: lancer_dao_token_account,
+    lancerTokenProgramAuthority: lancer_token_program_authority,
     tokenProgram: TOKEN_PROGRAM_ID,
   }).instruction();
+}
+
+export const approveRequestThirdPartyInstruction = async (
+  timestamp: string,
+  third_party_token_account: PublicKey,
+  payout_completer_tokens_account: PublicKey,
+  creator_company_tokens_account: PublicKey,
+  creator: PublicKey,
+  submitter: PublicKey,
+  submitter_token_account: PublicKey,
+  mint: PublicKey,
+  program: Program<MonoProgram>
+): Promise<TransactionInstruction> =>  {
+
+  const [feature_data_account] = await findFeatureAccount(
+    timestamp,
+    creator,
+    program
+  );
+
+  const [feature_token_account] = await findFeatureTokenAccount(
+    timestamp, 
+    creator,
+    mint, 
+    program,
+  );
+
+  const [program_authority] = await findProgramAuthority(
+      program,
+  );
+
+  const [lancer_dao_token_account] = await findLancerTokenAccount(
+    mint,
+    program
+  );
+
+  const [lancer_token_program_authority] = await findLancerProgramAuthority(program);
+
+  const [lancer_completer_tokens] = await findLancerCompleterTokens(program);
+  const [lancer_company_tokens] = await findLancerCompanyTokens(program);
+  const [program_mint_authority, mint_bump] = await findProgramMintAuthority(program);
+
+  return await program.methods.approveRequestThirdParty(mint_bump)
+  .accounts({
+    creator: creator,
+    submitter: submitter,
+    lancerCompleterTokens: lancer_completer_tokens,
+    lancerCompanyTokens: lancer_company_tokens,
+    payoutAccount: submitter_token_account,
+    featureDataAccount: feature_data_account,
+    creatorCompanyTokensAccount: creator_company_tokens_account,
+    payoutCompleterTokensAccount: payout_completer_tokens_account,
+    featureTokenAccount: feature_token_account,
+    programAuthority: program_authority,
+    programMintAuthority: program_mint_authority,
+    thirdParty: third_party_token_account,
+    lancerDaoTokenAccount: lancer_dao_token_account,
+    lancerTokenProgramAuthority: lancer_token_program_authority,
+    tokenProgram: TOKEN_PROGRAM_ID,
+  }).instruction();
+}
+
+
+export const createLancerTokenAccountInstruction =async (
+  funds_mint: PublicKey,
+  lancer_dao_token_account: PublicKey,
+  program: Program<MonoProgram>,
+) => {
+
+  const [lancer_token_program_authority] = await findLancerProgramAuthority(
+    program
+  );
+
+  return await program.methods.createLancerTokenAccount()
+    .accounts({
+      lancerAdmin: LANCER_ADMIN,
+      fundsMint: funds_mint,
+      lancerDaoTokenAccount: lancer_dao_token_account,
+      programAuthority: lancer_token_program_authority,
+    }).instruction()
 }
 
 export const voteToCancelInstruction = async (
@@ -286,3 +385,49 @@ const [program_authority] = await findProgramAuthority(
   }).instruction();
 }
 
+export const createLancerTokensInstruction = async (
+  program: Program<MonoProgram>,
+): Promise<TransactionInstruction> =>  {
+
+  const [lancer_completer_tokens] = await findLancerCompleterTokens(program);
+  const [lancer_company_tokens] = await findLancerCompanyTokens(program);
+  const [program_mint_authority] = await findProgramMintAuthority(program);
+
+  return  await program.methods.createLancerTokens()
+    .accounts({
+      admin: new PublicKey(LANCER_ADMIN),
+      lancerCompleterTokens: lancer_completer_tokens,
+      lancerCompanyTokens: lancer_company_tokens,
+      programMintAuthority: program_mint_authority,
+      systemProgram: SystemProgram.programId,
+      tokenProgram: TOKEN_PROGRAM_ID,
+    }).instruction()
+}
+
+export const withdrawTokensInstrution = async (
+  amount: number,
+  withdrawer: PublicKey,
+  withdrawerTokenAccount: PublicKey,
+  program: Program<MonoProgram>,
+) => {
+  const [lancer_token_program_authority, lancer_token_program_authority_bump] = await findLancerProgramAuthority(
+    program
+  );
+  const [lancer_dao_token_account] = await findLancerTokenAccount(
+    WSOL_ADDRESS,
+    program
+  );
+
+
+  return await program.methods.withdrawTokens(new anchor.BN(amount), lancer_token_program_authority_bump)
+    .accounts({
+      lancerAdmin: LANCER_ADMIN,
+      withdrawer: withdrawer,
+      withdrawerTokenAccount: withdrawerTokenAccount,
+      mint: WSOL_ADDRESS,
+      lancerDaoTokenAccount: lancer_dao_token_account,
+      lancerTokenProgramAuthority: lancer_token_program_authority,
+      tokenProgram: TOKEN_PROGRAM_ID,
+    }).instruction()
+
+}
