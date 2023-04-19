@@ -2,14 +2,14 @@
 seeds = true
 skip-lint = false
 [programs.localnet]
-mono_program = "Gu2VCpw4RagQ5gtxENrdXydPjyioEZqXgcyP2mf89xfA"
+mono_program = "Lag4h3EZK51MWC5L4VY7XeXmEmpo9TrAsgEhQXryHix"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
 cluster = "Localnet"
-wallet = "/home/chinedum/.config/solana/id.json"
+wallet = "deploy/admin.json"
 
 [test]
 startup_wait = 60000
