@@ -41,7 +41,7 @@ Copy the executable to the newly created folder specifically to deploy.
  This sets the network environment on which the program will be deployed. 
  
 
-    solana program deploy LancmbegcoDpgsDHwkgyMA6Aezqh7uPrNCX5V4gsWx8.json 
+    solana program deploy LancmbegcoDpgsDHwkgyMA6Aezqh7uPrNCX5V4gsWx8.so
 This will deploy the program to the selected network at our generated address.
 
 Instructions with restricted access for only the admin Include
