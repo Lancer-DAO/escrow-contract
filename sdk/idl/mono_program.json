@@ -1121,7 +1121,7 @@
             "type": {
               "array": [
                 "publicKey",
-                3
+                5
               ]
             }
           },
@@ -1214,6 +1214,11 @@
       "code": 6008,
       "name": "InvalidAdmin",
       "msg": "You are not the Admin"
+    },
+    {
+      "code": 6009,
+      "name": "NotApprovedSubmitter",
+      "msg": "You do not have permissions to submit"
     }
   ],
   "metadata": {

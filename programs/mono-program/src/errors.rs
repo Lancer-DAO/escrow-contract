@@ -29,4 +29,7 @@ pub enum MonoError
 
     #[msg("You are not the Admin")]
     InvalidAdmin,
+
+    #[msg("You do not have permissions to submit")]
+    NotApprovedSubmitter
 }

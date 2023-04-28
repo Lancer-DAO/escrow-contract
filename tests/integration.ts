@@ -151,7 +151,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 296, // number of bytes
+            dataSize: 360, // number of bytes
           },
           {
             memcmp: {
@@ -210,7 +210,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 296, // number of bytes
+            dataSize: 360, // number of bytes
           },
           {
             memcmp: {
@@ -309,7 +309,7 @@ describe("integration tests", () => {
           {
             filters: [
               {
-                dataSize: 296, // number of bytes
+                dataSize: 360, // number of bytes
               },
               {
                 memcmp: {
@@ -433,7 +433,7 @@ describe("integration tests", () => {
           {
             filters: [
               {
-                dataSize: 296, // number of bytes
+                dataSize: 360, // number of bytes
               },
               {
                 memcmp: {
@@ -494,6 +494,76 @@ describe("integration tests", () => {
           }        
   })
 
+  it ("unapproved submitter cannot submit request", async () => {
+    let creator = await createKeypair(provider);
+    const unapproved_submitter = await createKeypair(provider);
+     ;
+    const creator_wsol_account = await getOrCreateAssociatedTokenAccount(
+        provider.connection,
+        creator,
+        WSOL_ADDRESS,
+        creator.publicKey
+    );
+    const unapproved_submitter_wsol_account = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      unapproved_submitter,
+      WSOL_ADDRESS,
+      unapproved_submitter.publicKey
+    );
+    await add_more_token(provider, creator_wsol_account.address, WSOL_AMOUNT);
+
+    const ix = await createFeatureFundingAccountInstruction(
+      WSOL_ADDRESS,
+      creator.publicKey,
+      program
+    );
+
+    const [program_authority] = await findProgramAuthority(program);
+
+    let tx = await provider.sendAndConfirm(new Transaction().add(ix), [creator]);
+    const accounts = await provider.connection.getParsedProgramAccounts(
+      program.programId, 
+      {
+        filters: [
+          {
+            dataSize: 360, // number of bytes
+          },
+          {
+            memcmp: {
+              offset: 8, // number of bytes
+              bytes: creator.publicKey.toBase58(), // base58 encoded string
+            },
+          },
+        ],      
+      }
+    );
+
+    let acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+    
+    const [feature_data_account] = await findFeatureAccount(
+      acc.unixTimestamp,
+      creator.publicKey,
+      program
+    );
+
+    // Should be false already
+    assert.equal(acc.requestSubmitted, false);
+
+      try {
+        await program.methods.submitRequest()
+        .accounts({
+          creator: creator.publicKey,
+          submitter: unapproved_submitter.publicKey,
+          payoutAccount: unapproved_submitter_wsol_account.address,
+          featureDataAccount: feature_data_account,
+        }).signers([unapproved_submitter]).rpc()
+      }catch(err)
+      {
+        assert.equal((err as AnchorError).error.errorMessage, "You do not have permissions to submit")
+      }        
+
+  })
+
   it ("test approveRequest",async () => {
     let creator = await createKeypair(provider);
 
@@ -533,7 +603,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 296, // number of bytes
+            dataSize: 360, // number of bytes
           },
           {
             memcmp: {
@@ -727,7 +797,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 296, // number of bytes
+            dataSize: 360, // number of bytes
           },
           {
             memcmp: {
@@ -854,7 +924,7 @@ describe("integration tests", () => {
           {
             filters: [
               {
-                dataSize: 296, // number of bytes
+                dataSize: 360, // number of bytes
               },
               {
                 memcmp: {
@@ -968,7 +1038,7 @@ describe("integration tests", () => {
           {
             filters: [
               {
-                dataSize: 296, // number of bytes
+                dataSize: 360, // number of bytes
               },
               {
                 memcmp: {
@@ -1185,7 +1255,7 @@ describe("integration tests", () => {
           {
             filters: [
               {
-                dataSize: 296, // number of bytes
+                dataSize: 360, // number of bytes
               },
               {
                 memcmp: {
@@ -1217,7 +1287,7 @@ describe("integration tests", () => {
           {
             filters: [
               {
-                dataSize: 296, // number of bytes
+                dataSize: 360, // number of bytes
               },
               {
                 memcmp: {
@@ -1361,7 +1431,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 296, // number of bytes
+            dataSize: 360, // number of bytes
           },
           {
             memcmp: {
@@ -1450,7 +1520,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 296, // number of bytes
+            dataSize: 360, // number of bytes
           },
           {
             memcmp: {
@@ -1663,7 +1733,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 296, // number of bytes
+            dataSize: 360, // number of bytes
           },
           {
             memcmp: {
@@ -1859,7 +1929,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 296, // number of bytes
+            dataSize: 360, // number of bytes
           },
           {
             memcmp: {

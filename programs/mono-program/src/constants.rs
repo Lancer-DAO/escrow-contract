@@ -1,7 +1,7 @@
 use anchor_lang::{prelude::Pubkey, solana_program::pubkey};
 
 
-pub const MAX_NO_OF_SUBMITTERS: usize = 3;
+pub const MAX_NO_OF_SUBMITTERS: usize = 5;
 pub const MIN_NO_OF_SUBMITTERS: usize = 1;
 pub const MONO_DATA: &str = "mono";
 pub const LANCER_COMPLETER_TOKENS: &str = "lancer_completer_tokens";

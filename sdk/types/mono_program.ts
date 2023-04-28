@@ -1121,7 +1121,7 @@ export type MonoProgram = {
             "type": {
               "array": [
                 "publicKey",
-                3
+                5
               ]
             }
           },
@@ -1214,6 +1214,11 @@ export type MonoProgram = {
       "code": 6008,
       "name": "InvalidAdmin",
       "msg": "You are not the Admin"
+    },
+    {
+      "code": 6009,
+      "name": "NotApprovedSubmitter",
+      "msg": "You do not have permissions to submit"
     }
   ]
 };
@@ -2341,7 +2346,7 @@ export const IDL: MonoProgram = {
             "type": {
               "array": [
                 "publicKey",
-                3
+                5
               ]
             }
           },
@@ -2434,6 +2439,11 @@ export const IDL: MonoProgram = {
       "code": 6008,
       "name": "InvalidAdmin",
       "msg": "You are not the Admin"
+    },
+    {
+      "code": 6009,
+      "name": "NotApprovedSubmitter",
+      "msg": "You do not have permissions to submit"
     }
   ]
 };

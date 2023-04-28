@@ -36,8 +36,10 @@ pub struct SubmitRequest<'info>
 pub fn handler(ctx: Context<SubmitRequest>, ) -> Result<()>
 {
     let feature_data_account = &mut ctx.accounts.feature_data_account;
+    let mut is_approved_submitter = false;
 
     require!(!feature_data_account.request_submitted, MonoError::PendingRequestAlreadySubmitted);
+
     for submitter in feature_data_account.approved_submitters
     {
         if submitter.key() == ctx.accounts.submitter.key()
@@ -45,8 +47,12 @@ pub fn handler(ctx: Context<SubmitRequest>, ) -> Result<()>
             feature_data_account.request_submitted = true;
             feature_data_account.payout_account = ctx.accounts.payout_account.key();
             feature_data_account.current_submitter = ctx.accounts.submitter.key();
+            is_approved_submitter = true;
+            break;
         }
     }
+
+    require!(is_approved_submitter, MonoError::NotApprovedSubmitter);
     msg!("feature data account = {}", &ctx.accounts.feature_data_account.key());
 
     Ok(())
