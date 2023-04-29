@@ -61,10 +61,10 @@ pub fn handler(
     ctx: Context<CreateFeatureFundingAccount>,
     unix_timestamp: String,
 )  -> Result<()> {
-    msg!("feature data account = {}", ctx.accounts.feature_data_account.key());
-    msg!("program authority = {}", ctx.accounts.program_authority.key());
+    // msg!("feature data account = {}", ctx.accounts.feature_data_account.key());
+    // msg!("program authority = {}", ctx.accounts.program_authority.key());
     let feature_data_account = &mut ctx.accounts.feature_data_account;
-    msg!("size = {}", FeatureDataAccount::space(&unix_timestamp));
+    // msg!("size = {}", FeatureDataAccount::space(&unix_timestamp));
     feature_data_account.unix_timestamp = String::from(unix_timestamp);
     feature_data_account.no_of_submitters = 0;
     feature_data_account.amount = 0;
@@ -76,6 +76,7 @@ pub fn handler(
     feature_data_account.creator = ctx.accounts.creator.key();
     feature_data_account.funds_mint = ctx.accounts.funds_mint.key();
     feature_data_account.payout_account = Pubkey::default();
+    feature_data_account.is_multiple_submitters = false;
     feature_data_account.funds_data_account_bump = *ctx.bumps.get("feature_data_account").unwrap();
     feature_data_account.funds_token_account_bump = *ctx.bumps.get("feature_token_account").unwrap();
     feature_data_account.program_authority_bump = *ctx.bumps.get("program_authority").unwrap();

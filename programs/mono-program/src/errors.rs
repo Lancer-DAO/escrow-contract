@@ -31,5 +31,12 @@ pub enum MonoError
     InvalidAdmin,
 
     #[msg("You do not have permissions to submit")]
-    NotApprovedSubmitter
+    NotApprovedSubmitter,
+
+    #[msg("This Instruction is used for only single submitters.")]
+    ExpectedSingleSubmitter,
+
+    #[msg("This Instruction is used for only single submitters.")]
+    ExpectedMultipleSubmitters,
+
 }

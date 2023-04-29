@@ -4,7 +4,7 @@ use anchor_spl::{token::{TokenAccount}};
 use crate::{constants::MONO_DATA, state::FeatureDataAccount, errors::MonoError};
 
 #[derive(Accounts)]
-pub struct SubmitRequest<'info>
+pub struct SubmitRequestMultiple<'info>
 {
     #[account(mut)]
     pub creator: SystemAccount<'info>,
@@ -33,12 +33,13 @@ pub struct SubmitRequest<'info>
 }
 
 
-pub fn handler(ctx: Context<SubmitRequest>, ) -> Result<()>
+pub fn handler(ctx: Context<SubmitRequestMultiple>, ) -> Result<()>
 {
     let feature_data_account = &mut ctx.accounts.feature_data_account;
+    require!(feature_data_account.is_multiple_submitters, MonoError::ExpectedMultipleSubmitters);
     let mut is_approved_submitter = false;
 
-    require!(!feature_data_account.request_submitted, MonoError::PendingRequestAlreadySubmitted);
+    // require!(!feature_data_account.request_submitted, MonoError::PendingRequestAlreadySubmitted);
 
     for submitter in feature_data_account.approved_submitters
     {

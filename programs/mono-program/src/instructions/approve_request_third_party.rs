@@ -227,7 +227,7 @@ pub fn handler(ctx: Context<ApproveRequestThirdParty>, bump: u8) -> Result<()>
         .checked_div(PERCENT)
         .unwrap();
     
-    msg!("completer fee amount = {}", completer_fee);
+    // msg!("completer fee amount = {}", completer_fee);
     
     token::transfer(
         ctx.accounts.transfer_bounty_context().with_signer(&transfer_signer), 
@@ -241,14 +241,14 @@ pub fn handler(ctx: Context<ApproveRequestThirdParty>, bump: u8) -> Result<()>
         .checked_div(PERCENT)
         .unwrap();
     
-    msg!("third party fee = {}", third_party_fee);
+    // msg!("third party fee = {}", third_party_fee);
     token::transfer(
         ctx.accounts.transfer_bounty_third_party_fee_context().with_signer(&transfer_signer), 
         third_party_fee
     )?;
 
     ctx.accounts.feature_token_account.reload()?;
-    msg!("lancer fee = {}", ctx.accounts.feature_token_account.amount);
+    // msg!("lancer fee = {}", ctx.accounts.feature_token_account.amount);
     token::transfer(
         ctx.accounts.transfer_bounty_fee_context().with_signer(&transfer_signer), 
         ctx.accounts.feature_token_account.amount

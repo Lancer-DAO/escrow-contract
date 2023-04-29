@@ -6,7 +6,6 @@ use crate::{constants::{LANCER_DAO, MONO_DATA, LANCER_ADMIN}, errors::MonoError}
 #[derive(Accounts)]
 pub struct CreateLancerTokenAccount<'info>
 {
-    // TODO: Can only be called by lancer admin
     #[account(
         mut,
         address = LANCER_ADMIN @ MonoError::InvalidAdmin,

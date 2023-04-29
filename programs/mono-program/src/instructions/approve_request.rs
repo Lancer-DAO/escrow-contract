@@ -192,10 +192,13 @@ impl<'info> ApproveRequest<'info> {
 
 pub fn handler(ctx: Context<ApproveRequest>, mint_bump: u8) -> Result<()>
 {
+    let feature_data_account = &ctx.accounts.feature_data_account;
+    //TODO - test for this
+    require!(!feature_data_account.is_multiple_submitters, MonoError::ExpectedSingleSubmitter);
 
     let transfer_seeds = &[
         MONO_DATA.as_bytes(),
-        &[ctx.accounts.feature_data_account.program_authority_bump]
+        &[feature_data_account.program_authority_bump]
     ];
     let transfer_signer = [&transfer_seeds[..]];
 
@@ -206,7 +209,7 @@ pub fn handler(ctx: Context<ApproveRequest>, mint_bump: u8) -> Result<()>
     let mint_signer = [&mint_seeds[..]];
 
 
-    let bounty_amount = ctx.accounts.feature_data_account.amount;
+    let bounty_amount = feature_data_account.amount;
     // pay the completer 95%
     let completer_fee = bounty_amount
         .checked_mul(COMPLETER_FEE as u64)
@@ -214,7 +217,7 @@ pub fn handler(ctx: Context<ApproveRequest>, mint_bump: u8) -> Result<()>
         .checked_div(PERCENT)
         .unwrap();
     
-    msg!("completer fee amount = {}", completer_fee);
+    // msg!("completer fee amount = {}", completer_fee);
     
     token::transfer(
         ctx.accounts.transfer_bounty_context().with_signer(&transfer_signer), 
@@ -222,7 +225,7 @@ pub fn handler(ctx: Context<ApproveRequest>, mint_bump: u8) -> Result<()>
     )?;
     ctx.accounts.feature_token_account.reload()?;
 
-    msg!("lancer fee = {}", ctx.accounts.feature_token_account.amount);
+    // msg!("lancer fee = {}", ctx.accounts.feature_token_account.amount);
 
     token::transfer(
         ctx.accounts.transfer_bounty_fee_context().with_signer(&transfer_signer), 
@@ -231,11 +234,11 @@ pub fn handler(ctx: Context<ApproveRequest>, mint_bump: u8) -> Result<()>
 
     token::mint_to(
         ctx.accounts.mint_completer_tokens().with_signer(&mint_signer), 
-        ctx.accounts.feature_data_account.amount
+        feature_data_account.amount
     )?;
     token::mint_to(
         ctx.accounts.mint_company_tokens().with_signer(&mint_signer), 
-        ctx.accounts.feature_data_account.amount
+        feature_data_account.amount
     )?;    
 
     // Close token account owned by program that stored funds

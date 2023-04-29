@@ -7,7 +7,7 @@ import { COMPLETER_FEE, LANCER_FEE, LANCER_FEE_THIRD_PARTY, MINT_DECIMALS, MONO_
 import { Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction } from "@solana/web3.js";
 import { add_more_token, createKeypair } from "./utils";
 import { findFeatureAccount, findFeatureTokenAccount, findLancerCompanyTokens, findLancerCompleterTokens, findLancerProgramAuthority, findLancerTokenAccount, findProgramAuthority, findProgramMintAuthority } from "../sdk/pda";
-import { addApprovedSubmittersInstruction, approveRequestInstruction, approveRequestThirdPartyInstruction, cancelFeatureInstruction, createFeatureFundingAccountInstruction, createLancerTokenAccountInstruction, createLancerTokensInstruction, denyRequestInstruction, fundFeatureInstruction, removeApprovedSubmittersInstruction, submitRequestInstruction, voteToCancelInstruction, withdrawTokensInstruction } from "../sdk/instructions";
+import { addApprovedSubmittersInstruction, approveRequestInstruction, approveRequestThirdPartyInstruction, cancelFeatureInstruction, createFeatureFundingAccountInstruction, createLancerTokenAccountInstruction, createLancerTokensInstruction, denyRequestInstruction, enableMultipleSubmittersInstruction, fundFeatureInstruction, removeApprovedSubmittersInstruction, submitRequestInstruction, voteToCancelInstruction, withdrawTokensInstruction } from "../sdk/instructions";
 import { assert } from "chai";
 import { min } from "bn.js";
 
@@ -151,7 +151,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 360, // number of bytes
+            dataSize: 361, // number of bytes
           },
           {
             memcmp: {
@@ -165,6 +165,7 @@ describe("integration tests", () => {
       const acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
       // Check creator in FFA corresponds to expected creator
       assert.equal(creator.publicKey.toString(), acc.creator.toString());
+      assert.equal(acc.isMultipleSubmitters, false);
 
       const token_account_in_TokenAccount = await getAccount(provider.connection, acc.fundsTokenAccount);
       const token_account_in_Account = await provider.connection.getAccountInfo(token_account_in_TokenAccount.address);
@@ -175,7 +176,6 @@ describe("integration tests", () => {
       assert.equal(token_account_in_TokenAccount.mint.toString(), acc.fundsMint.toString());
       // Check token account owner is already TOKEN_PROGRAM_ID(already done in getAccount()) 
       assert.equal(token_account_in_Account.owner.toString(), TOKEN_PROGRAM_ID.toString());
-
 
       //check amount is empty
       // assert.equal(acc.amount.toNumber, 0);
@@ -210,7 +210,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 360, // number of bytes
+            dataSize: 361, // number of bytes
           },
           {
             memcmp: {
@@ -281,6 +281,56 @@ describe("integration tests", () => {
 
   });
 
+  it ("test toggle on enable multiple submitters", async () => {
+    let creator = await createKeypair(provider);
+
+    const creator_wsol_account = await getOrCreateAssociatedTokenAccount(
+        provider.connection,
+        creator,
+        WSOL_ADDRESS,
+        creator.publicKey
+    );
+
+    await add_more_token(provider, creator_wsol_account.address, WSOL_AMOUNT);
+
+    const create_FFA_ix = await createFeatureFundingAccountInstruction(
+      WSOL_ADDRESS,
+      creator.publicKey,
+      program
+    );
+    const tx1 = await provider.sendAndConfirm(new Transaction().add(create_FFA_ix), [creator]);
+    console.log("createFFA(2nd test) transaction signature", tx1);
+
+    // transfer WSOL
+    const accounts = await provider.connection.getParsedProgramAccounts(
+      program.programId, 
+      {
+        filters: [
+          {
+            dataSize: 361, // number of bytes
+          },
+          {
+            memcmp: {
+              offset: 8, // number of bytes
+              bytes: creator.publicKey.toBase58(), // base58 encoded string
+            },
+          },
+        ],      
+      }
+    );
+
+    let acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+    const enable_multiple_submitters_ix = await enableMultipleSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      program
+    );
+    await provider.sendAndConfirm(new Transaction().add(enable_multiple_submitters_ix), [creator]);
+    acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+  
+    assert.equal(acc.isMultipleSubmitters, true);
+  })
+
   it ("test approveSubmitter", async () => {
         // Add your test here.
         let creator = await createKeypair(provider);
@@ -309,7 +359,7 @@ describe("integration tests", () => {
           {
             filters: [
               {
-                dataSize: 360, // number of bytes
+                dataSize: 361, // number of bytes
               },
               {
                 memcmp: {
@@ -433,7 +483,7 @@ describe("integration tests", () => {
           {
             filters: [
               {
-                dataSize: 360, // number of bytes
+                dataSize: 361, // number of bytes
               },
               {
                 memcmp: {
@@ -526,7 +576,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 360, // number of bytes
+            dataSize: 361, // number of bytes
           },
           {
             memcmp: {
@@ -603,7 +653,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 360, // number of bytes
+            dataSize: 361, // number of bytes
           },
           {
             memcmp: {
@@ -797,7 +847,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 360, // number of bytes
+            dataSize: 361, // number of bytes
           },
           {
             memcmp: {
@@ -924,7 +974,7 @@ describe("integration tests", () => {
           {
             filters: [
               {
-                dataSize: 360, // number of bytes
+                dataSize: 361, // number of bytes
               },
               {
                 memcmp: {
@@ -1038,7 +1088,7 @@ describe("integration tests", () => {
           {
             filters: [
               {
-                dataSize: 360, // number of bytes
+                dataSize: 361, // number of bytes
               },
               {
                 memcmp: {
@@ -1255,7 +1305,7 @@ describe("integration tests", () => {
           {
             filters: [
               {
-                dataSize: 360, // number of bytes
+                dataSize: 361, // number of bytes
               },
               {
                 memcmp: {
@@ -1287,7 +1337,7 @@ describe("integration tests", () => {
           {
             filters: [
               {
-                dataSize: 360, // number of bytes
+                dataSize: 361, // number of bytes
               },
               {
                 memcmp: {
@@ -1431,7 +1481,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 360, // number of bytes
+            dataSize: 361, // number of bytes
           },
           {
             memcmp: {
@@ -1520,7 +1570,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 360, // number of bytes
+            dataSize: 361, // number of bytes
           },
           {
             memcmp: {
@@ -1733,7 +1783,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 360, // number of bytes
+            dataSize: 361, // number of bytes
           },
           {
             memcmp: {
@@ -1929,7 +1979,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 360, // number of bytes
+            dataSize: 361, // number of bytes
           },
           {
             memcmp: {

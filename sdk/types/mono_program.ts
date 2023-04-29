@@ -1092,6 +1092,42 @@ export type MonoProgram = {
           "type": "u8"
         }
       ]
+    },
+    {
+      "name": "enableMultipleSubmitters",
+      "accounts": [
+        {
+          "name": "creator",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "featureDataAccount",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "mono"
+              },
+              {
+                "kind": "account",
+                "type": "string",
+                "account": "FeatureDataAccount",
+                "path": "feature_data_account.unix_timestamp"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "creator"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -1148,6 +1184,10 @@ export type MonoProgram = {
           {
             "name": "noOfSubmitters",
             "type": "u8"
+          },
+          {
+            "name": "isMultipleSubmitters",
+            "type": "bool"
           },
           {
             "name": "fundsTokenAccountBump",
@@ -1219,6 +1259,16 @@ export type MonoProgram = {
       "code": 6009,
       "name": "NotApprovedSubmitter",
       "msg": "You do not have permissions to submit"
+    },
+    {
+      "code": 6010,
+      "name": "ExpectedSingleSubmitter",
+      "msg": "This Instruction is used for only single submitters."
+    },
+    {
+      "code": 6011,
+      "name": "ExpectedMultipleSubmitters",
+      "msg": "This Instruction is used for only single submitters."
     }
   ]
 };
@@ -2317,6 +2367,42 @@ export const IDL: MonoProgram = {
           "type": "u8"
         }
       ]
+    },
+    {
+      "name": "enableMultipleSubmitters",
+      "accounts": [
+        {
+          "name": "creator",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "featureDataAccount",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "mono"
+              },
+              {
+                "kind": "account",
+                "type": "string",
+                "account": "FeatureDataAccount",
+                "path": "feature_data_account.unix_timestamp"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "creator"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -2373,6 +2459,10 @@ export const IDL: MonoProgram = {
           {
             "name": "noOfSubmitters",
             "type": "u8"
+          },
+          {
+            "name": "isMultipleSubmitters",
+            "type": "bool"
           },
           {
             "name": "fundsTokenAccountBump",
@@ -2444,6 +2534,16 @@ export const IDL: MonoProgram = {
       "code": 6009,
       "name": "NotApprovedSubmitter",
       "msg": "You do not have permissions to submit"
+    },
+    {
+      "code": 6010,
+      "name": "ExpectedSingleSubmitter",
+      "msg": "This Instruction is used for only single submitters."
+    },
+    {
+      "code": 6011,
+      "name": "ExpectedMultipleSubmitters",
+      "msg": "This Instruction is used for only single submitters."
     }
   ]
 };

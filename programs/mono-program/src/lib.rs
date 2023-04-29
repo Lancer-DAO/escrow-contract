@@ -81,6 +81,14 @@ pub mod mono_program {
         approve_request_third_party::handler(ctx, bump)
     }
 
+    pub fn enable_multiple_submitters(ctx: Context<EnableMultipleSubmitters>, ) -> Result<()> {
+        enable_multiple_submitters::handler(ctx)
+    }
+
+    pub fn submit_request_multiple(ctx: Context<SubmitRequestMultiple>,) -> Result<()> {
+        submit_request_multiple::handler(ctx)
+    }
+
 }
 
 

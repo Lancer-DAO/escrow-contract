@@ -75,7 +75,7 @@ pub fn handler(ctx: Context<FundFeature>, amount: u64) -> Result<()>
     let feature_data_account = &mut ctx.accounts.feature_data_account;
     feature_data_account.amount = amount;
 
-    msg!("lancer fee = {}, min token balance = {}", lancer_fee, min_token_balance);
+    // msg!("lancer fee = {}, min token balance = {}", lancer_fee, min_token_balance);
     require!(
         ctx.accounts.creator_token_account.amount >= 
         min_token_balance,

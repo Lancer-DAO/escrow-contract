@@ -28,7 +28,7 @@ pub struct AddApprovedSubmitters<'info>
 pub fn handler(ctx: Context<AddApprovedSubmitters>, ) -> Result<()>
 {
     let feature_data_account = &mut ctx.accounts.feature_data_account;
-    msg!("num = {}", feature_data_account.no_of_submitters);
+    // msg!("num = {}", feature_data_account.no_of_submitters);
 
     let submitter_index: usize = feature_data_account.no_of_submitters as usize;
     require!(submitter_index < MAX_NO_OF_SUBMITTERS, MonoError::MaxApprovedSubmitters);

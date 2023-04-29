@@ -28,7 +28,7 @@ pub struct RemoveApprovedSubmitters<'info>
 pub fn handler(ctx: Context<RemoveApprovedSubmitters>, ) -> Result<()>
 {
     let feature_data_account = &mut ctx.accounts.feature_data_account;
-    msg!("num = {}", feature_data_account.no_of_submitters);
+    // msg!("num = {}", feature_data_account.no_of_submitters);
 
     require!(
         feature_data_account.no_of_submitters as usize  >= 

@@ -16,6 +16,7 @@ pub struct FeatureDataAccount
     pub funder_cancel: bool,// 1
     pub payout_cancel: bool,// 1
     pub no_of_submitters: u8, // 1
+    pub is_multiple_submitters: bool, // 1
     pub funds_token_account_bump: u8, // 1
     pub funds_data_account_bump: u8, // 1
     pub program_authority_bump: u8, // 1
@@ -38,6 +39,7 @@ impl FeatureDataAccount
         1  +// funder_cancel
         1  +// payout_cancel
         1  +// no_of_submitters
+        1  +// is_multiple_submitters
         1  +// funds_token_account_bump
         1  +// funds_data_account_bump
         1  +// program_authority_bump    

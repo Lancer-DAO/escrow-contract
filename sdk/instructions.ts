@@ -437,3 +437,23 @@ export const withdrawTokensInstruction = async (
     }).instruction()
 
 }
+
+export const enableMultipleSubmittersInstruction = async (
+  timestamp: string,
+  creator: PublicKey,
+  program: Program<MonoProgram>,
+) => {
+
+  const [feature_data_account] = await findFeatureAccount(
+    timestamp,
+    creator,
+    program
+  );
+
+  return await program.methods.enableMultipleSubmitters()
+    .accounts({
+      creator: creator,
+      featureDataAccount: feature_data_account,
+    }).instruction()
+
+}
