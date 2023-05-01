@@ -89,6 +89,14 @@ pub mod mono_program {
         submit_request_multiple::handler(ctx)
     }
 
+    pub fn set_share_multiple_submitters(ctx: Context<SetShareMultipleSubmitters>, submitter: Pubkey, submitter_share: f32) -> Result<()> {
+        set_share_multiple_submitters::handler(ctx, submitter, submitter_share)
+    }
+
+    pub fn approve_request_multiple<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultiple<'info>>, ) -> Result<()> {
+        approve_request_multiple::handler(ctx, )
+    }
+
 }
 
 

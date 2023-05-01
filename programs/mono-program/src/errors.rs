@@ -33,10 +33,18 @@ pub enum MonoError
     #[msg("You do not have permissions to submit")]
     NotApprovedSubmitter,
 
-    #[msg("This Instruction is used for only single submitters.")]
+    #[msg("This Instruction is used for only a single submitter.")]
     ExpectedSingleSubmitter,
 
-    #[msg("This Instruction is used for only single submitters.")]
+    #[msg("This Instruction is used for only Multiple submitters.")]
     ExpectedMultipleSubmitters,
 
+    #[msg("Share Cannot Exceed 100")]
+    MaxShareExceeded,
+
+    #[msg("Share must be 100")]
+    ShareMustBe100,
+
+    #[msg("Token Error")]
+    NotOwnedBySplToken,
 }

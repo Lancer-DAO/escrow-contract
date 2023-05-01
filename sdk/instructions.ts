@@ -15,6 +15,7 @@ import {
   } from "@solana/spl-token";
   
   import {
+    ComputeBudgetProgram,
     Keypair,
     LAMPORTS_PER_SOL,
     PublicKey,
@@ -373,7 +374,7 @@ export const cancelFeatureInstruction = async (
     creator,
     mint, 
     program,
-);
+  );
 
 const [program_authority] = await findProgramAuthority(
     program,
@@ -415,7 +416,7 @@ export const withdrawTokensInstruction = async (
   withdrawer: PublicKey,
   withdrawerTokenAccount: PublicKey,
   program: Program<MonoProgram>,
-) => {
+) : Promise<TransactionInstruction> => {
   const [lancer_token_program_authority, lancer_token_program_authority_bump] = await findLancerProgramAuthority(
     program
   );
@@ -442,7 +443,7 @@ export const enableMultipleSubmittersInstruction = async (
   timestamp: string,
   creator: PublicKey,
   program: Program<MonoProgram>,
-) => {
+): Promise<TransactionInstruction> =>  {
 
   const [feature_data_account] = await findFeatureAccount(
     timestamp,
@@ -456,4 +457,136 @@ export const enableMultipleSubmittersInstruction = async (
       featureDataAccount: feature_data_account,
     }).instruction()
 
+}
+
+export const submitRequestMultipleInstruction = async (
+  timestamp: string,
+  creator: PublicKey,
+  submitter: PublicKey,
+  program: Program<MonoProgram>
+): Promise<TransactionInstruction> =>  {
+  const [feature_data_account] = await findFeatureAccount(
+    timestamp,
+    creator,
+    program
+  );
+  return await program.methods.submitRequestMultiple()
+      .accounts({
+        creator: creator,
+        submitter: submitter,
+        featureDataAccount: feature_data_account,
+      }).instruction();
+}
+
+export const setShareMultipleSubmittersInstruction = async (
+  timestamp: string,
+  creator: PublicKey,
+  submitter: PublicKey,  
+  submitter_share: number,
+  program: Program<MonoProgram>,
+) => {
+  const [feature_data_account] = await findFeatureAccount(
+    timestamp,
+    creator,
+    program
+  );
+
+  return await program.methods.setShareMultipleSubmitters(submitter, submitter_share)
+    .accounts({
+      creator: creator,
+      featureDataAccount: feature_data_account
+    }).instruction()
+}
+
+export const approveRequestMultipleTransaction = async (
+  timestamp: string,
+  creator: PublicKey,
+  mint: PublicKey,
+  program: Program<MonoProgram>,
+): Promise<Transaction> =>  {
+  let modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
+    units: 1400000
+  });
+  const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({
+    microLamports: 1
+  });
+  const [feature_data_account] = await findFeatureAccount(
+    timestamp,
+    creator,
+    program
+  );
+  const [lancer_token_program_authority, lancer_token_program_authority_bump] = await findLancerProgramAuthority(
+    program
+  );
+  const [lancer_dao_token_account] = await findLancerTokenAccount(
+    mint,
+    program
+  );
+  const [program_authority] = await findProgramAuthority(
+    program,
+  );
+  const [feature_token_account] = await findFeatureTokenAccount(
+    timestamp, 
+    creator,
+    mint, 
+    program,
+  );
+
+  let submitter1 = PublicKey.default;
+  let submitter2 = PublicKey.default;
+  let submitter3 = PublicKey.default;
+  let submitter4 = PublicKey.default;
+  let submitter5 = PublicKey.default;
+
+  let fetch_submitters = await program.account.featureDataAccount.fetch(feature_data_account);
+  let no_of_submitters = fetch_submitters.noOfSubmitters;
+
+  if (fetch_submitters.approvedSubmitters[0].toString() != submitter1.toString())
+  {
+    submitter1 = await getAssociatedTokenAddress(mint, fetch_submitters.approvedSubmitters[0])
+    console.log("submitter 1 token accoun", submitter1.toString())
+  }
+  if (fetch_submitters.approvedSubmitters[1].toString() != submitter2.toString())
+  {
+    submitter2 = await getAssociatedTokenAddress(mint, fetch_submitters.approvedSubmitters[1])
+  }
+  if (fetch_submitters.approvedSubmitters[2].toString() != submitter3.toString())
+  {
+    submitter3 = await getAssociatedTokenAddress(mint, fetch_submitters.approvedSubmitters[2])
+  }
+  if (fetch_submitters.approvedSubmitters[3].toString() != submitter4.toString())
+  {
+    submitter4 = await getAssociatedTokenAddress(mint, fetch_submitters.approvedSubmitters[3])
+  }
+  if (fetch_submitters.approvedSubmitters[4].toString() != submitter5.toString())
+  {
+    submitter5 = await getAssociatedTokenAddress(mint, fetch_submitters.approvedSubmitters[4])
+  }
+
+  let approve_request_multiple_ix = await program.methods.approveRequestMultiple()
+  .accounts({
+    creator: creator,
+    featureDataAccount: feature_data_account,
+    featureTokenAccount: feature_token_account,
+    lancerDaoTokenAccount: lancer_dao_token_account,
+    lancerTokenProgramAuthority: lancer_token_program_authority,
+    programAuthority: program_authority,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    systemProgram: SystemProgram.programId
+  })
+  .remainingAccounts([
+    { pubkey: submitter1, isSigner: false, isWritable: true},
+    { pubkey: submitter2, isSigner: false, isWritable: true},
+    { pubkey: submitter3, isSigner: false, isWritable: true},
+    { pubkey: submitter4, isSigner: false, isWritable: true},
+    { pubkey: submitter5, isSigner: false, isWritable: true},
+  ])
+  .instruction();
+
+  const transaction = new Transaction()
+  .add(modifyComputeUnits)
+  .add(addPriorityFee)
+  .add(approve_request_multiple_ix);
+
+  return transaction;
 }

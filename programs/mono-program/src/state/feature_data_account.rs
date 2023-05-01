@@ -10,6 +10,7 @@ pub struct FeatureDataAccount
     pub request_submitted: bool,// 1
     pub current_submitter: Pubkey,// 32
     pub approved_submitters: [Pubkey; MAX_NO_OF_SUBMITTERS],// 32 * 5 = 160    
+    pub approved_submitters_shares: [f32; MAX_NO_OF_SUBMITTERS],// 4 * 5 = 20  
     pub funds_mint: Pubkey,// 32 
     pub funds_token_account: Pubkey,// 32 
     pub payout_account: Pubkey,// 32
@@ -32,6 +33,7 @@ impl FeatureDataAccount
         1  +// request_submitted
         32 +// current_submitter
         (32 * MAX_NO_OF_SUBMITTERS) +// approved_submitters
+        (4 * MAX_NO_OF_SUBMITTERS) + //approved submiiters share(in case of mulriple submitters)
         32 +// creator
         32 +// funds_mint
         32 +// funds_account

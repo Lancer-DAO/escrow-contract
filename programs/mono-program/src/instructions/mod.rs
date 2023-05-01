@@ -13,6 +13,8 @@ pub mod withdraw_tokens;
 pub mod approve_request_third_party;
 pub mod enable_multiple_submitters;
 pub mod submit_request_multiple;
+pub mod set_share_multiple_submitters;
+pub mod approve_request_multiple;
 
 pub use create_feature_funding_account::*;
 pub use fund_feature::*;
@@ -29,3 +31,5 @@ pub use withdraw_tokens::*;
 pub use approve_request_third_party::*;
 pub use enable_multiple_submitters::*;
 pub use submit_request_multiple::*;
+pub use set_share_multiple_submitters::*;
+pub use approve_request_multiple::*;

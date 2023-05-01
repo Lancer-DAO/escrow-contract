@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use anchor_spl::{token::{TokenAccount}};
 
 use crate::{constants::MONO_DATA, state::FeatureDataAccount, errors::MonoError};
 
@@ -11,12 +10,6 @@ pub struct SubmitRequestMultiple<'info>
 
     #[account()]
     pub submitter: Signer<'info>,
-
-    #[account(
-        token::mint = feature_data_account.funds_mint,
-        token::authority = submitter,
-    )]
-    pub payout_account: Account<'info, TokenAccount>,
 
     #[account(
         mut, 
@@ -46,8 +39,6 @@ pub fn handler(ctx: Context<SubmitRequestMultiple>, ) -> Result<()>
         if submitter.key() == ctx.accounts.submitter.key()
         {
             feature_data_account.request_submitted = true;
-            feature_data_account.payout_account = ctx.accounts.payout_account.key();
-            feature_data_account.current_submitter = ctx.accounts.submitter.key();
             is_approved_submitter = true;
             break;
         }
@@ -55,6 +46,6 @@ pub fn handler(ctx: Context<SubmitRequestMultiple>, ) -> Result<()>
 
     require!(is_approved_submitter, MonoError::NotApprovedSubmitter);
     // msg!("feature data account = {}", &ctx.accounts.feature_data_account.key());
-
+    msg!("{} submitted a request", ctx.accounts.submitter.key());
     Ok(())
 }

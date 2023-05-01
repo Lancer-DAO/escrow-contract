@@ -1,13 +1,13 @@
 import * as anchor from "@project-serum/anchor";
 import { AnchorError, Program } from "@project-serum/anchor";
-import { ASSOCIATED_TOKEN_PROGRAM_ID, createAccount, createInitializeAccount3Instruction, createSyncNativeInstruction, getAccount, getMint, getOrCreateAssociatedTokenAccount, NATIVE_MINT, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, createAccount, createInitializeAccount3Instruction, createMint, createSyncNativeInstruction, getAccount, getMint, getOrCreateAssociatedTokenAccount, NATIVE_MINT, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { MonoProgram } from "../sdk/types/mono_program";
 import  MonoProgramJSON  from "../sdk/idl/mono_program.json";
 import { COMPLETER_FEE, LANCER_FEE, LANCER_FEE_THIRD_PARTY, MINT_DECIMALS, MONO_DEVNET, THIRD_PARTY, WSOL_ADDRESS } from "../sdk/constants";
-import { Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction } from "@solana/web3.js";
+import { ComputeBudgetInstruction, ComputeBudgetProgram, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction } from "@solana/web3.js";
 import { add_more_token, createKeypair } from "./utils";
 import { findFeatureAccount, findFeatureTokenAccount, findLancerCompanyTokens, findLancerCompleterTokens, findLancerProgramAuthority, findLancerTokenAccount, findProgramAuthority, findProgramMintAuthority } from "../sdk/pda";
-import { addApprovedSubmittersInstruction, approveRequestInstruction, approveRequestThirdPartyInstruction, cancelFeatureInstruction, createFeatureFundingAccountInstruction, createLancerTokenAccountInstruction, createLancerTokensInstruction, denyRequestInstruction, enableMultipleSubmittersInstruction, fundFeatureInstruction, removeApprovedSubmittersInstruction, submitRequestInstruction, voteToCancelInstruction, withdrawTokensInstruction } from "../sdk/instructions";
+import { addApprovedSubmittersInstruction, approveRequestInstruction, approveRequestMultipleTransaction, approveRequestThirdPartyInstruction, cancelFeatureInstruction, createFeatureFundingAccountInstruction, createLancerTokenAccountInstruction, createLancerTokensInstruction, denyRequestInstruction, enableMultipleSubmittersInstruction, fundFeatureInstruction, removeApprovedSubmittersInstruction, setShareMultipleSubmittersInstruction, submitRequestInstruction, submitRequestMultipleInstruction, voteToCancelInstruction, withdrawTokensInstruction } from "../sdk/instructions";
 import { assert } from "chai";
 import { min } from "bn.js";
 
@@ -151,7 +151,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 361, // number of bytes
+            dataSize: 381, // number of bytes
           },
           {
             memcmp: {
@@ -210,7 +210,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 361, // number of bytes
+            dataSize: 381, // number of bytes
           },
           {
             memcmp: {
@@ -307,7 +307,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 361, // number of bytes
+            dataSize: 381, // number of bytes
           },
           {
             memcmp: {
@@ -329,6 +329,219 @@ describe("integration tests", () => {
     acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
   
     assert.equal(acc.isMultipleSubmitters, true);
+  })
+
+  it ("set shares of multiple submitters", async () => {
+    let creator = await createKeypair(provider);
+
+    const creator_wsol_account = await getOrCreateAssociatedTokenAccount(
+        provider.connection,
+        creator,
+        WSOL_ADDRESS,
+        creator.publicKey
+    );
+
+    await add_more_token(provider, creator_wsol_account.address, WSOL_AMOUNT);
+
+    const create_FFA_ix = await createFeatureFundingAccountInstruction(
+      WSOL_ADDRESS,
+      creator.publicKey,
+      program
+    );
+    const tx1 = await provider.sendAndConfirm(new Transaction().add(create_FFA_ix), [creator]);
+    console.log("createFFA(2nd test) transaction signature", tx1);
+
+    // transfer WSOL
+    const accounts = await provider.connection.getParsedProgramAccounts(
+      program.programId, 
+      {
+        filters: [
+          {
+            dataSize: 381, // number of bytes
+          },
+          {
+            memcmp: {
+              offset: 8, // number of bytes
+              bytes: creator.publicKey.toBase58(), // base58 encoded string
+            },
+          },
+        ],      
+      }
+    );
+
+    let acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+    const enable_multiple_submitters_ix = await enableMultipleSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      program
+    );
+    await provider.sendAndConfirm(new Transaction().add(enable_multiple_submitters_ix), [creator]);
+    acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+    const [feature_data_account] = await findFeatureAccount(
+      acc.unixTimestamp,
+      creator.publicKey,
+      program
+    );
+
+    assert.equal(acc.isMultipleSubmitters, true);
+
+    const submitter1 = await createKeypair(provider);
+    const submitter2 = await createKeypair(provider);
+    const submitter3 = await createKeypair(provider);
+    const submitter4 = await createKeypair(provider);
+    const submitter5 = await createKeypair(provider);
+
+    let approveSubmitter1Ix = await addApprovedSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter1.publicKey,
+      program
+    )
+    let approveSubmitter2Ix = await addApprovedSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter2.publicKey,
+      program
+    )
+    let approveSubmitter3Ix = await addApprovedSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter3.publicKey,
+      program
+    )
+    let approveSubmitter4Ix = await addApprovedSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter4.publicKey,
+      program
+    )
+    let approveSubmitter5Ix = await addApprovedSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter5.publicKey,
+      program
+    )
+
+    let tx = await provider.sendAndConfirm(
+      new Transaction()
+        .add(approveSubmitter1Ix)
+        .add(approveSubmitter2Ix)
+        .add(approveSubmitter3Ix)
+        .add(approveSubmitter4Ix)
+        .add(approveSubmitter5Ix), 
+        [creator]
+    ); 
+    const submitter6 = await createKeypair(provider);
+    try {
+    
+      await program.methods.addApprovedSubmitters()
+        .accounts({
+          creator: creator.publicKey,
+          submitter: submitter6.publicKey,
+          featureDataAccount: feature_data_account
+        }).signers([creator]).rpc()
+    } catch (err) {
+      assert.equal((err as AnchorError).error.errorMessage, "Max Number of Approved Submitters already reached")
+    }
+    console.log("adding 5 approved submitters tx = ", tx);
+
+    acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+    assert.equal(acc.approvedSubmitters[0].toString(), submitter1.publicKey.toString());
+    assert.equal(acc.approvedSubmitters[1].toString(), submitter2.publicKey.toString());
+    assert.equal(acc.approvedSubmitters[2].toString(), submitter3.publicKey.toString());
+    assert.equal(acc.approvedSubmitters[3].toString(), submitter4.publicKey.toString());
+    assert.equal(acc.approvedSubmitters[4].toString(), submitter5.publicKey.toString());
+
+    // add shares to the submitters
+    try {
+      // test user a share above 100 percent cannot be added
+      await program.methods.setShareMultipleSubmitters(submitter1.publicKey, 101)
+        .accounts({
+          creator: creator.publicKey,
+          featureDataAccount: feature_data_account
+        }).signers([creator]).rpc()
+    } catch (err) {
+      assert.equal((err as AnchorError).error.errorMessage, "Share Cannot Exceed 100")
+    }
+
+    try {
+      // check for creator
+      let fake_creator = await createKeypair(provider);
+      await program.methods.setShareMultipleSubmitters(submitter1.publicKey, 101)
+        .accounts({
+          creator: fake_creator.publicKey,
+          featureDataAccount: feature_data_account
+        }).signers([fake_creator]).rpc()
+    } catch (err) {
+      // console.log("ERR = ", err);
+      assert.equal((err as AnchorError).error.errorMessage, "A seeds constraint was violated")
+    }
+
+    let submitter1_share_ix = await setShareMultipleSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter1.publicKey,
+      20,
+      program
+    )
+    let submitter2_share_ix = await setShareMultipleSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter2.publicKey,
+      20,
+      program
+    )
+    let submitter3_share_ix = await setShareMultipleSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter3.publicKey,
+      20,
+      program
+    )
+    let submitter4_share_ix = await setShareMultipleSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter4.publicKey,
+      20,
+      program
+    )
+    let submitter5_share_ix = await setShareMultipleSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter5.publicKey,
+      20,
+      program
+    )
+
+    tx = await provider.sendAndConfirm(
+      new Transaction()
+        .add(submitter1_share_ix)
+        .add(submitter2_share_ix)
+        .add(submitter3_share_ix)
+        .add(submitter4_share_ix)
+        .add(submitter5_share_ix), 
+        [creator]
+    ); 
+
+    try {
+      await program.methods.setShareMultipleSubmitters(submitter6.publicKey, 10)
+      .accounts({
+        creator: creator.publicKey,
+        featureDataAccount: feature_data_account
+      }).signers([creator]).rpc()
+    } catch (err) {
+      assert.equal((err as AnchorError).error.errorMessage, "You do not have permissions to submit")
+    }
+
+    acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+    assert.equal(acc.approvedSubmittersShares[0], 20);
+    assert.equal(acc.approvedSubmittersShares[1], 20);
+    assert.equal(acc.approvedSubmittersShares[2], 20);
+    assert.equal(acc.approvedSubmittersShares[3], 20);
+    assert.equal(acc.approvedSubmittersShares[4], 20);
+
+
+
   })
 
   it ("test approveSubmitter", async () => {
@@ -359,7 +572,7 @@ describe("integration tests", () => {
           {
             filters: [
               {
-                dataSize: 361, // number of bytes
+                dataSize: 381, // number of bytes
               },
               {
                 memcmp: {
@@ -483,7 +696,7 @@ describe("integration tests", () => {
           {
             filters: [
               {
-                dataSize: 361, // number of bytes
+                dataSize: 381, // number of bytes
               },
               {
                 memcmp: {
@@ -544,6 +757,94 @@ describe("integration tests", () => {
           }        
   })
 
+  it ("test submitRequest fails when enable multiple submitters is turmed on", async () => {
+    // Add your test here.
+    let creator = await createKeypair(provider);
+    const submitter = await createKeypair(provider);
+     ;
+    const creator_wsol_account = await getOrCreateAssociatedTokenAccount(
+        provider.connection,
+        creator,
+        WSOL_ADDRESS,
+        creator.publicKey
+    );
+    const submitter_wsol_account = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      submitter,
+      WSOL_ADDRESS,
+      submitter.publicKey
+    );
+    await add_more_token(provider, creator_wsol_account.address, WSOL_AMOUNT);
+
+    const ix = await createFeatureFundingAccountInstruction(
+      WSOL_ADDRESS,
+      creator.publicKey,
+      program
+    );
+
+    const [program_authority] = await findProgramAuthority(program);
+
+    let tx = await provider.sendAndConfirm(new Transaction().add(ix), [creator]);
+    const accounts = await provider.connection.getParsedProgramAccounts(
+      program.programId, 
+      {
+        filters: [
+          {
+            dataSize: 381, // number of bytes
+          },
+          {
+            memcmp: {
+              offset: 8, // number of bytes
+              bytes: creator.publicKey.toBase58(), // base58 encoded string
+            },
+          },
+        ],      
+      }
+    );
+
+    let acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+    
+    const [feature_data_account] = await findFeatureAccount(
+      acc.unixTimestamp,
+      creator.publicKey,
+      program
+    );
+
+    
+    let approveSubmitterIx = await addApprovedSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter.publicKey,
+      program
+    )
+    
+    tx = await provider.sendAndConfirm(new Transaction().add(approveSubmitterIx), [creator]); 
+
+    // Should be false already
+    assert.equal(acc.requestSubmitted, false);
+
+    let enable_multiple_submitters_ix = await enableMultipleSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      program
+    );
+    await provider.sendAndConfirm(new Transaction().add(enable_multiple_submitters_ix), [creator]);
+
+      try {
+        await program.methods.submitRequest()
+        .accounts({
+          creator: creator.publicKey,
+          submitter: submitter.publicKey,
+          payoutAccount: submitter_wsol_account.address,
+          featureDataAccount: feature_data_account,
+        }).signers([submitter]).rpc()
+      }catch(err)
+      {
+        assert.equal((err as AnchorError).error.errorMessage, "This Instruction is used for only a single submitter.")
+      }        
+  })
+
+
   it ("unapproved submitter cannot submit request", async () => {
     let creator = await createKeypair(provider);
     const unapproved_submitter = await createKeypair(provider);
@@ -576,7 +877,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 361, // number of bytes
+            dataSize: 381, // number of bytes
           },
           {
             memcmp: {
@@ -611,6 +912,112 @@ describe("integration tests", () => {
       {
         assert.equal((err as AnchorError).error.errorMessage, "You do not have permissions to submit")
       }        
+
+  })
+
+  it ("test submit Request Multiple parties", async () => {
+    let creator = await createKeypair(provider);
+    const submitter1 = await createKeypair(provider);
+    const submitter2 = await createKeypair(provider);
+     
+    const creator_wsol_account = await getOrCreateAssociatedTokenAccount(
+        provider.connection,
+        creator,
+        WSOL_ADDRESS,
+        creator.publicKey
+    );
+    const submitter1_wsol_account = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      submitter1,
+      WSOL_ADDRESS,
+      submitter1.publicKey
+    );
+    await add_more_token(provider, creator_wsol_account.address, WSOL_AMOUNT);
+
+    const ix = await createFeatureFundingAccountInstruction(
+      WSOL_ADDRESS,
+      creator.publicKey,
+      program
+    );
+
+    const [program_authority] = await findProgramAuthority(program);
+
+    let tx = await provider.sendAndConfirm(new Transaction().add(ix), [creator]);
+    const accounts = await provider.connection.getParsedProgramAccounts(
+      program.programId, 
+      {
+        filters: [
+          {
+            dataSize: 381, // number of bytes
+          },
+          {
+            memcmp: {
+              offset: 8, // number of bytes
+              bytes: creator.publicKey.toBase58(), // base58 encoded string
+            },
+          },
+        ],      
+      }
+    );
+
+    let acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+    
+    const [feature_data_account] = await findFeatureAccount(
+      acc.unixTimestamp,
+      creator.publicKey,
+      program
+    );
+
+    let approveSubmitter1Ix = await addApprovedSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter1.publicKey,
+      program
+    )
+    let approveSubmitter2Ix = await addApprovedSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter2.publicKey,
+      program
+    )
+    
+    tx = await provider.sendAndConfirm(new Transaction().add(approveSubmitter1Ix,approveSubmitter2Ix), [creator]); 
+
+    try
+    { 
+      await program.methods.submitRequestMultiple()
+      .accounts({
+        creator: creator.publicKey,
+        submitter: submitter1.publicKey,
+        featureDataAccount: feature_data_account,
+      }).signers([submitter1]).rpc();
+    }catch(err)
+    {
+      assert.equal((err as AnchorError).error.errorMessage, "This Instruction is used for only Multiple submitters.");
+    }
+
+    let enable_multiple_submitters_ix = await enableMultipleSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      program
+    );
+    await provider.sendAndConfirm(new Transaction().add(enable_multiple_submitters_ix), [creator]);
+
+      let submitRequestMultipleIx1 = await submitRequestMultipleInstruction(
+        acc.unixTimestamp,
+        creator.publicKey,
+        submitter1.publicKey,
+        program
+      )
+      
+      let submitRequestMultipleIx2 = await submitRequestMultipleInstruction(
+        acc.unixTimestamp,
+        creator.publicKey,
+        submitter2.publicKey,
+        program
+      )
+
+      await provider.sendAndConfirm(new Transaction().add(submitRequestMultipleIx1).add(submitRequestMultipleIx2), [submitter1, submitter2])
 
   })
 
@@ -653,7 +1060,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 361, // number of bytes
+            dataSize: 381, // number of bytes
           },
           {
             memcmp: {
@@ -847,7 +1254,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 361, // number of bytes
+            dataSize: 381, // number of bytes
           },
           {
             memcmp: {
@@ -974,7 +1381,7 @@ describe("integration tests", () => {
           {
             filters: [
               {
-                dataSize: 361, // number of bytes
+                dataSize: 381, // number of bytes
               },
               {
                 memcmp: {
@@ -1088,7 +1495,7 @@ describe("integration tests", () => {
           {
             filters: [
               {
-                dataSize: 361, // number of bytes
+                dataSize: 381, // number of bytes
               },
               {
                 memcmp: {
@@ -1305,7 +1712,7 @@ describe("integration tests", () => {
           {
             filters: [
               {
-                dataSize: 361, // number of bytes
+                dataSize: 381, // number of bytes
               },
               {
                 memcmp: {
@@ -1337,7 +1744,7 @@ describe("integration tests", () => {
           {
             filters: [
               {
-                dataSize: 361, // number of bytes
+                dataSize: 381, // number of bytes
               },
               {
                 memcmp: {
@@ -1481,7 +1888,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 361, // number of bytes
+            dataSize: 381, // number of bytes
           },
           {
             memcmp: {
@@ -1570,7 +1977,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 361, // number of bytes
+            dataSize: 381, // number of bytes
           },
           {
             memcmp: {
@@ -1783,7 +2190,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 361, // number of bytes
+            dataSize: 381, // number of bytes
           },
           {
             memcmp: {
@@ -1979,7 +2386,7 @@ describe("integration tests", () => {
       {
         filters: [
           {
-            dataSize: 361, // number of bytes
+            dataSize: 381, // number of bytes
           },
           {
             memcmp: {
@@ -2141,6 +2548,415 @@ describe("integration tests", () => {
    
         assert.equal(0, parseInt(closed_data_account.toString()));
         assert.equal(0, parseInt(closed_token_account.toString()));
+
+  })
+
+  it ("approve ReQuest for Multiple Submitters", async () => {
+    let creator = await createKeypair(provider);
+    const submitter1 = await createKeypair(provider);
+    const submitter2 = await createKeypair(provider);
+    const submitter3 = await createKeypair(provider);
+    const submitter4 = await createKeypair(provider);
+    const submitter5 = await createKeypair(provider);
+     
+    const creator_wsol_account = await getOrCreateAssociatedTokenAccount(
+        provider.connection,
+        creator,
+        WSOL_ADDRESS,
+        creator.publicKey
+    );
+    const submitter1_wsol_account = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      submitter1,
+      WSOL_ADDRESS,
+      submitter1.publicKey
+    );
+    const submitter2_wsol_account = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      submitter2,
+      WSOL_ADDRESS,
+      submitter2.publicKey
+    );
+    const submitter3_wsol_account = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      submitter3,
+      WSOL_ADDRESS,
+      submitter3.publicKey
+    );
+    const submitter4_wsol_account = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      submitter4,
+      WSOL_ADDRESS,
+      submitter4.publicKey
+    );
+    const submitter5_wsol_account = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      submitter5,
+      WSOL_ADDRESS,
+      submitter5.publicKey
+    );
+    await add_more_token(provider, creator_wsol_account.address, WSOL_AMOUNT);
+    await add_more_token(provider, creator_wsol_account.address, WSOL_AMOUNT);
+
+    const ix = await createFeatureFundingAccountInstruction(
+      WSOL_ADDRESS,
+      creator.publicKey,
+      program
+    );
+
+    let tx = await provider.sendAndConfirm(new Transaction().add(ix), [creator]);
+    const accounts = await provider.connection.getParsedProgramAccounts(
+      program.programId, 
+      {
+        filters: [
+          {
+            dataSize: 381, // number of bytes
+          },
+          {
+            memcmp: {
+              offset: 8, // number of bytes
+              bytes: creator.publicKey.toBase58(), // base58 encoded string
+            },
+          },
+        ],      
+      }
+    );
+      let amount = 1 * LAMPORTS_PER_SOL;
+    let acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+    let fund_feature_ix = await fundFeatureInstruction(
+      amount,
+      acc.unixTimestamp,
+      creator.publicKey,
+      WSOL_ADDRESS,
+      program
+    );
+
+      const tx2 = await provider.sendAndConfirm(new Transaction().add(fund_feature_ix), [creator]);
+
+
+    acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+
+    const [feature_token_account] = await findFeatureTokenAccount(
+      acc.unixTimestamp,
+      creator.publicKey,
+      WSOL_ADDRESS,
+      program
+    );
+      const [lancer_dao_token_account] = await findLancerTokenAccount(
+        WSOL_ADDRESS,
+        program
+      );
+      const [lancer_token_program_authority, lancer_token_program_authority_bump] = await findLancerProgramAuthority(
+        program
+      );
+
+    const [program_authority] = await findProgramAuthority(program);
+
+    
+    const [feature_data_account] = await findFeatureAccount(
+      acc.unixTimestamp,
+      creator.publicKey,
+      program
+    );
+
+    let approveSubmitter1Ix = await addApprovedSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter1.publicKey,
+      program
+    )
+    let approveSubmitter2Ix = await addApprovedSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter2.publicKey,
+      program
+    )
+    let approveSubmitter3Ix = await addApprovedSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter3.publicKey,
+      program
+    )
+    let approveSubmitter4Ix = await addApprovedSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter4.publicKey,
+      program
+    )
+    let approveSubmitter5Ix = await addApprovedSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter5.publicKey,
+      program
+    )
+
+    tx = await provider.sendAndConfirm(
+      new Transaction()
+        .add(approveSubmitter1Ix)
+        .add(approveSubmitter2Ix)
+        .add(approveSubmitter3Ix)
+        .add(approveSubmitter4Ix)
+        .add(approveSubmitter5Ix), 
+        [creator]
+    ); 
+
+
+    try
+    { 
+      await program.methods.submitRequestMultiple()
+      .accounts({
+        creator: creator.publicKey,
+        submitter: submitter1.publicKey,
+        featureDataAccount: feature_data_account,
+      }).signers([submitter1]).rpc();
+    }catch(err)
+    {
+      assert.equal((err as AnchorError).error.errorMessage, "This Instruction is used for only Multiple submitters.");
+    }
+
+    let enable_multiple_submitters_ix = await enableMultipleSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      program
+    );
+    await provider.sendAndConfirm(new Transaction().add(enable_multiple_submitters_ix), [creator]);
+
+      let submitRequestMultipleIx1 = await submitRequestMultipleInstruction(
+        acc.unixTimestamp,
+        creator.publicKey,
+        submitter1.publicKey,
+        program
+      )
+      
+      let submitRequestMultipleIx2 = await submitRequestMultipleInstruction(
+        acc.unixTimestamp,
+        creator.publicKey,
+        submitter2.publicKey,
+        program
+      )
+      let submitRequestMultipleIx3 = await submitRequestMultipleInstruction(
+        acc.unixTimestamp,
+        creator.publicKey,
+        submitter3.publicKey,
+        program
+      )
+      let submitRequestMultipleIx4 = await submitRequestMultipleInstruction(
+        acc.unixTimestamp,
+        creator.publicKey,
+        submitter4.publicKey,
+        program
+      )
+      let submitRequestMultipleIx5 = await submitRequestMultipleInstruction(
+        acc.unixTimestamp,
+        creator.publicKey,
+        submitter5.publicKey,
+        program
+      )
+
+      await provider.sendAndConfirm(new Transaction().add(submitRequestMultipleIx1).add(submitRequestMultipleIx2), [submitter1, submitter2])
+      try {
+        await program.methods.approveRequestMultiple()
+          .accounts({
+            creator: creator.publicKey,
+            featureDataAccount: feature_data_account,
+            featureTokenAccount: feature_token_account,
+            lancerDaoTokenAccount: lancer_dao_token_account,
+            lancerTokenProgramAuthority: lancer_token_program_authority,
+            programAuthority: program_authority,
+            tokenProgram: TOKEN_PROGRAM_ID
+          }).signers([creator]).rpc();
+      } catch (err) {
+        assert.equal((err as AnchorError).error.errorMessage, "Share must be 100")
+      }
+      let submitter1_share_ix = await setShareMultipleSubmittersInstruction(
+        acc.unixTimestamp,
+        creator.publicKey,
+        submitter1.publicKey,
+        20,
+        program
+      )
+
+    let submitter2_share_ix = await setShareMultipleSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter2.publicKey,
+      20,
+      program
+    )
+    let submitter3_share_ix = await setShareMultipleSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter3.publicKey,
+      20,
+      program
+    )
+    let submitter4_share_ix = await setShareMultipleSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter4.publicKey,
+      20,
+      program
+    )
+    let submitter5_share_ix = await setShareMultipleSubmittersInstruction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      submitter5.publicKey,
+      20,
+      program
+    )
+
+    tx = await provider.sendAndConfirm(
+      new Transaction()
+        .add(submitter1_share_ix)
+        .add(submitter2_share_ix)
+        .add(submitter3_share_ix)
+        .add(submitter4_share_ix)
+        .add(submitter5_share_ix), 
+        [creator]
+    ); 
+    
+    acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+let bal = await provider.connection.getTokenAccountBalance(feature_token_account);
+console.log("bal;", bal.value.amount);
+console.log("sub 1 ", acc.approvedSubmitters[0].toString())
+console.log("sub 2 ", acc.approvedSubmitters[1].toString())
+console.log("sub 3 ", acc.approvedSubmitters[2].toString())
+console.log("sub 4 ", acc.approvedSubmitters[3].toString())
+console.log("sub 5 ", acc.approvedSubmitters[4].toString())
+    // try{
+    //   let modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
+    //     units: 1400000
+    //   });
+    //   const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({
+    //     microLamports: 1
+    //   });
+
+    //   let another_mint = await createMint(
+    //     provider.connection,
+    //     creator,
+    //     creator.publicKey,
+    //     creator.publicKey,
+    //     10
+    //   );
+    //   const submitter1_another_token_account = await getOrCreateAssociatedTokenAccount(
+    //     provider.connection,
+    //     submitter1,
+    //     another_mint,
+    //     submitter1.publicKey
+    //   );
+  
+    //   let approve_request_multiple_ix = await program.methods.approveRequestMultiple()
+    //   .accounts({
+    //     creator: creator.publicKey,
+    //     featureDataAccount: feature_data_account,
+    //     featureTokenAccount: feature_token_account,
+    //     lancerDaoTokenAccount: lancer_dao_token_account,
+    //     lancerTokenProgramAuthority: lancer_token_program_authority,
+    //     programAuthority: program_authority,
+    //     tokenProgram: TOKEN_PROGRAM_ID,
+    //     systemProgram: SystemProgram.programId
+    //   })
+    //   .remainingAccounts([
+    //     { pubkey: submitter1_another_token_account.address, isSigner: false, isWritable: true},
+    //     { pubkey: submitter2_wsol_account.address, isSigner: false, isWritable: true},
+    //     { pubkey: submitter3_wsol_account.address, isSigner: false, isWritable: true},
+    //     { pubkey: submitter4_wsol_account.address, isSigner: false, isWritable: true},
+    //     { pubkey: submitter5_wsol_account.address, isSigner: false, isWritable: true},
+    //   ])
+    //   .signers([creator]).instruction();
+
+    //   const transaction = new Transaction()
+    //     // .add(modifyComputeUnits)
+    //     // .add(addPriorityFee)
+    //     .add(approve_request_multiple_ix);
+    //   await provider.sendAndConfirm(transaction, [creator])
+
+    // }catch(err)
+    // {
+    //   console.log("err = ", err);
+    //   assert.equal((err as AnchorError).error.errorMessage, "This mint is not valid")
+    // }
+
+    let submitter1_before_token_balance = await provider.connection.getTokenAccountBalance(submitter1_wsol_account.address);
+    let submitter2_before_token_balance = await provider.connection.getTokenAccountBalance(submitter2_wsol_account.address);
+    let submitter3_before_token_balance = await provider.connection.getTokenAccountBalance(submitter3_wsol_account.address);
+    let submitter4_before_token_balance = await provider.connection.getTokenAccountBalance(submitter4_wsol_account.address);
+    let submitter5_before_token_balance = await provider.connection.getTokenAccountBalance(submitter4_wsol_account.address);
+    let lancer_before_token_balance = await provider.connection.getTokenAccountBalance(lancer_dao_token_account);
+
+    let transaction = await approveRequestMultipleTransaction(
+      acc.unixTimestamp,
+      creator.publicKey,
+      WSOL_ADDRESS,
+      program
+    )
+    await provider.sendAndConfirm(transaction, [creator])
+
+    let submitter1_after_token_balance = await provider.connection.getTokenAccountBalance(submitter1_wsol_account.address);
+    let submitter2_after_token_balance = await provider.connection.getTokenAccountBalance(submitter2_wsol_account.address);
+    let submitter3_after_token_balance = await provider.connection.getTokenAccountBalance(submitter3_wsol_account.address);
+    let submitter4_after_token_balance = await provider.connection.getTokenAccountBalance(submitter4_wsol_account.address);
+    let submitter5_after_token_balance = await provider.connection.getTokenAccountBalance(submitter5_wsol_account.address);
+    let lancer_after_token_balance = await provider.connection.getTokenAccountBalance(lancer_dao_token_account);
+
+
+    assert.equal(
+      parseInt(
+        submitter1_before_token_balance.value.amount
+      ) + (amount / acc.noOfSubmitters * COMPLETER_FEE),
+      parseInt(
+        submitter1_after_token_balance.value.amount
+      )
+    );
+    assert.equal(
+      parseInt(
+        submitter2_before_token_balance.value.amount
+      ) + (amount / acc.noOfSubmitters * COMPLETER_FEE),
+      parseInt(
+        submitter2_after_token_balance.value.amount
+      )
+    );
+    assert.equal(
+      parseInt(
+        submitter3_before_token_balance.value.amount
+      ) + (amount / acc.noOfSubmitters * COMPLETER_FEE),
+      parseInt(
+        submitter3_after_token_balance.value.amount
+      )
+    );
+    assert.equal(
+      parseInt(
+        submitter4_before_token_balance.value.amount
+      ) + (amount / acc.noOfSubmitters * COMPLETER_FEE),
+      parseInt(
+        submitter4_after_token_balance.value.amount
+      )
+    );
+    assert.equal(
+      parseInt(
+        submitter5_before_token_balance.value.amount
+      ) + (amount / acc.noOfSubmitters * COMPLETER_FEE),
+      parseInt(
+        submitter5_after_token_balance.value.amount
+      )
+    );
+    assert.equal(
+      parseInt(
+        submitter1_before_token_balance.value.amount
+      ) + (amount / acc.noOfSubmitters * COMPLETER_FEE),
+      parseInt(
+        submitter1_after_token_balance.value.amount
+      )
+    );
+    assert.equal(
+      parseInt(
+        lancer_before_token_balance.value.amount
+      ) + (amount * LANCER_FEE),
+      parseInt(
+        lancer_after_token_balance.value.amount
+      )
+    );
+
 
   })
 
