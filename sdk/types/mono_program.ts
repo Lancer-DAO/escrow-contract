@@ -323,16 +323,6 @@ export type MonoProgram = {
           "isSigner": false
         },
         {
-          "name": "payoutCompleterTokensAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "creatorCompanyTokensAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "featureDataAccount",
           "isMut": true,
           "isSigner": false,
@@ -437,30 +427,6 @@ export type MonoProgram = {
                 "kind": "const",
                 "type": "string",
                 "value": "mono"
-              }
-            ]
-          }
-        },
-        {
-          "name": "lancerCompleterTokens",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "lancerCompanyTokens",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "programMintAuthority",
-          "isMut": false,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "type": "string",
-                "value": "mint_authority"
               }
             ]
           }
@@ -938,16 +904,6 @@ export type MonoProgram = {
           "isSigner": false
         },
         {
-          "name": "payoutCompleterTokensAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "creatorCompanyTokensAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "featureDataAccount",
           "isMut": true,
           "isSigner": false,
@@ -1052,30 +1008,6 @@ export type MonoProgram = {
                 "kind": "const",
                 "type": "string",
                 "value": "mono"
-              }
-            ]
-          }
-        },
-        {
-          "name": "lancerCompleterTokens",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "lancerCompanyTokens",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "programMintAuthority",
-          "isMut": false,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "type": "string",
-                "value": "mint_authority"
               }
             ]
           }
@@ -1838,16 +1770,6 @@ export const IDL: MonoProgram = {
           "isSigner": false
         },
         {
-          "name": "payoutCompleterTokensAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "creatorCompanyTokensAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "featureDataAccount",
           "isMut": true,
           "isSigner": false,
@@ -1952,30 +1874,6 @@ export const IDL: MonoProgram = {
                 "kind": "const",
                 "type": "string",
                 "value": "mono"
-              }
-            ]
-          }
-        },
-        {
-          "name": "lancerCompleterTokens",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "lancerCompanyTokens",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "programMintAuthority",
-          "isMut": false,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "type": "string",
-                "value": "mint_authority"
               }
             ]
           }
@@ -2453,16 +2351,6 @@ export const IDL: MonoProgram = {
           "isSigner": false
         },
         {
-          "name": "payoutCompleterTokensAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "creatorCompanyTokensAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "featureDataAccount",
           "isMut": true,
           "isSigner": false,
@@ -2567,30 +2455,6 @@ export const IDL: MonoProgram = {
                 "kind": "const",
                 "type": "string",
                 "value": "mono"
-              }
-            ]
-          }
-        },
-        {
-          "name": "lancerCompleterTokens",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "lancerCompanyTokens",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "programMintAuthority",
-          "isMut": false,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "type": "string",
-                "value": "mint_authority"
               }
             ]
           }

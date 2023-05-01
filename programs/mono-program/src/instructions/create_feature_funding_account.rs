@@ -61,10 +61,7 @@ pub fn handler(
     ctx: Context<CreateFeatureFundingAccount>,
     unix_timestamp: String,
 )  -> Result<()> {
-    // msg!("feature data account = {}", ctx.accounts.feature_data_account.key());
-    // msg!("program authority = {}", ctx.accounts.program_authority.key());
     let feature_data_account = &mut ctx.accounts.feature_data_account;
-    // msg!("size = {}", FeatureDataAccount::space(&unix_timestamp));
     feature_data_account.unix_timestamp = String::from(unix_timestamp);
     feature_data_account.no_of_submitters = 0;
     feature_data_account.amount = 0;

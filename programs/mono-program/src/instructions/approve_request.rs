@@ -21,19 +21,19 @@ pub struct ApproveRequest<'info>
     )]
     pub payout_account: Box<Account<'info, TokenAccount>>,
 
-    #[account(
-        mut,
-        token::mint = lancer_completer_tokens,
-        token::authority = submitter,
-    )]
-    pub payout_completer_tokens_account: Box<Account<'info, TokenAccount>>,
+    // #[account(
+    //     mut,
+    //     token::mint = lancer_completer_tokens,
+    //     token::authority = submitter,
+    // )]
+    // pub payout_completer_tokens_account: Box<Account<'info, TokenAccount>>,
 
-    #[account(
-        mut,
-        token::mint = lancer_company_tokens,
-        // token::authority = feature_data_account.creator,
-    )]
-    pub creator_company_tokens_account: Box<Account<'info, TokenAccount>>,
+    // #[account(
+    //     mut,
+    //     token::mint = lancer_company_tokens,
+    //     // token::authority = feature_data_account.creator,
+    // )]
+    // pub creator_company_tokens_account: Box<Account<'info, TokenAccount>>,
 
 
     #[account(
@@ -96,38 +96,38 @@ pub struct ApproveRequest<'info>
     )]
     pub program_authority: UncheckedAccount<'info>,
 
-    #[account(
-        mut,
-        seeds = [
-            LANCER_ADMIN.as_ref(),
-            LANCER_COMPLETER_TOKENS.as_bytes()
-        ],
-        bump,
-        mint::decimals = MINT_DECIMALS,
-        mint::authority = program_mint_authority,
-    )]
-    pub lancer_completer_tokens: Account<'info, Mint>,
+    // #[account(
+    //     mut,
+    //     seeds = [
+    //         LANCER_ADMIN.as_ref(),
+    //         LANCER_COMPLETER_TOKENS.as_bytes()
+    //     ],
+    //     bump,
+    //     mint::decimals = MINT_DECIMALS,
+    //     mint::authority = program_mint_authority,
+    // )]
+    // pub lancer_completer_tokens: Account<'info, Mint>,
 
-    #[account(
-        mut,
-        seeds = [
-            LANCER_ADMIN.as_ref(),
-            LANCER_COMPANY_TOKENS.as_bytes()
-        ],
-        bump,
-        mint::decimals = MINT_DECIMALS,
-        mint::authority = program_mint_authority,
-    )]
-    pub lancer_company_tokens: Account<'info, Mint>,
+    // #[account(
+    //     mut,
+    //     seeds = [
+    //         LANCER_ADMIN.as_ref(),
+    //         LANCER_COMPANY_TOKENS.as_bytes()
+    //     ],
+    //     bump,
+    //     mint::decimals = MINT_DECIMALS,
+    //     mint::authority = program_mint_authority,
+    // )]
+    // pub lancer_company_tokens: Account<'info, Mint>,
 
-    ///CHECK: mint authority
-    #[account(
-        seeds = [
-            MINT_AUTHORITY.as_bytes()
-        ],
-        bump,
-    )]
-    pub program_mint_authority: UncheckedAccount<'info>,
+    // ///CHECK: mint authority
+    // #[account(
+    //     seeds = [
+    //         MINT_AUTHORITY.as_bytes()
+    //     ],
+    //     bump,
+    // )]
+    // pub program_mint_authority: UncheckedAccount<'info>,
 
 
     pub token_program: Program<'info, Token>,
@@ -166,27 +166,27 @@ impl<'info> ApproveRequest<'info> {
         })
     }
 
-    fn mint_completer_tokens(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
-        CpiContext::new(
-            self.token_program.to_account_info(),
-             MintTo {
-                mint: self.lancer_completer_tokens.to_account_info(),
-                to: self.payout_completer_tokens_account.to_account_info(),
-                authority: self.program_mint_authority.to_account_info(),
-             }
-        )
-    }
+    // fn mint_completer_tokens(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
+    //     CpiContext::new(
+    //         self.token_program.to_account_info(),
+    //          MintTo {
+    //             mint: self.lancer_completer_tokens.to_account_info(),
+    //             to: self.payout_completer_tokens_account.to_account_info(),
+    //             authority: self.program_mint_authority.to_account_info(),
+    //          }
+    //     )
+    // }
 
-    fn mint_company_tokens(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
-        CpiContext::new(
-            self.token_program.to_account_info(),
-             MintTo {
-                mint: self.lancer_company_tokens.to_account_info(),
-                to: self.creator_company_tokens_account.to_account_info(),
-                authority: self.program_mint_authority.to_account_info(),
-             }
-        )
-    }
+    // fn mint_company_tokens(&self) -> CpiContext<'_, '_, '_, 'info, MintTo<'info>> {
+    //     CpiContext::new(
+    //         self.token_program.to_account_info(),
+    //          MintTo {
+    //             mint: self.lancer_company_tokens.to_account_info(),
+    //             to: self.creator_company_tokens_account.to_account_info(),
+    //             authority: self.program_mint_authority.to_account_info(),
+    //          }
+    //     )
+    // }
 
 }
 
@@ -206,7 +206,7 @@ pub fn handler(ctx: Context<ApproveRequest>, mint_bump: u8) -> Result<()>
         MINT_AUTHORITY.as_bytes(),
         &[mint_bump]
     ];
-    let mint_signer = [&mint_seeds[..]];
+    // let mint_signer = [&mint_seeds[..]];
 
 
     let bounty_amount = feature_data_account.amount;
@@ -232,14 +232,14 @@ pub fn handler(ctx: Context<ApproveRequest>, mint_bump: u8) -> Result<()>
         ctx.accounts.feature_token_account.amount
     )?;
 
-    token::mint_to(
-        ctx.accounts.mint_completer_tokens().with_signer(&mint_signer), 
-        feature_data_account.amount
-    )?;
-    token::mint_to(
-        ctx.accounts.mint_company_tokens().with_signer(&mint_signer), 
-        feature_data_account.amount
-    )?;    
+    // token::mint_to(
+    //     ctx.accounts.mint_completer_tokens().with_signer(&mint_signer), 
+    //     feature_data_account.amount
+    // )?;
+    // token::mint_to(
+    //     ctx.accounts.mint_company_tokens().with_signer(&mint_signer), 
+    //     feature_data_account.amount
+    // )?;    
 
     // Close token account owned by program that stored funds
     token::close_account(

@@ -323,16 +323,6 @@
           "isSigner": false
         },
         {
-          "name": "payoutCompleterTokensAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "creatorCompanyTokensAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "featureDataAccount",
           "isMut": true,
           "isSigner": false,
@@ -437,30 +427,6 @@
                 "kind": "const",
                 "type": "string",
                 "value": "mono"
-              }
-            ]
-          }
-        },
-        {
-          "name": "lancerCompleterTokens",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "lancerCompanyTokens",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "programMintAuthority",
-          "isMut": false,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "type": "string",
-                "value": "mint_authority"
               }
             ]
           }
@@ -938,16 +904,6 @@
           "isSigner": false
         },
         {
-          "name": "payoutCompleterTokensAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "creatorCompanyTokensAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "featureDataAccount",
           "isMut": true,
           "isSigner": false,
@@ -1052,30 +1008,6 @@
                 "kind": "const",
                 "type": "string",
                 "value": "mono"
-              }
-            ]
-          }
-        },
-        {
-          "name": "lancerCompleterTokens",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "lancerCompanyTokens",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "programMintAuthority",
-          "isMut": false,
-          "isSigner": false,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "type": "string",
-                "value": "mint_authority"
               }
             ]
           }

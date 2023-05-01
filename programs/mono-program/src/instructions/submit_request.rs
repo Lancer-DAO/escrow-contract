@@ -55,7 +55,6 @@ pub fn handler(ctx: Context<SubmitRequest>, ) -> Result<()>
     }
 
     require!(is_approved_submitter, MonoError::NotApprovedSubmitter);
-    // msg!("feature data account = {}", &ctx.accounts.feature_data_account.key());
 
     Ok(())
 }

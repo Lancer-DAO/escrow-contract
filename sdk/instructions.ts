@@ -81,7 +81,6 @@ export const fundFeatureInstruction = async (
     creator,
     program
   );
-
   const [feature_token_account] = await findFeatureTokenAccount(
     timestamp,
     creator,
@@ -193,8 +192,8 @@ export const denyRequestInstruction = async (
 
 export const approveRequestInstruction = async (
   timestamp: string,
-  payout_completer_tokens_account: PublicKey,
-  creator_company_tokens_account: PublicKey,
+  // payout_completer_tokens_account: PublicKey,
+  // creator_company_tokens_account: PublicKey,
   creator: PublicKey,
   submitter: PublicKey,
   submitter_token_account: PublicKey,
@@ -226,23 +225,23 @@ export const approveRequestInstruction = async (
 
   const [lancer_token_program_authority] = await findLancerProgramAuthority(program);
 
-  const [lancer_completer_tokens] = await findLancerCompleterTokens(program);
-  const [lancer_company_tokens] = await findLancerCompanyTokens(program);
-  const [program_mint_authority, mint_bump] = await findProgramMintAuthority(program);
+  // const [lancer_completer_tokens] = await findLancerCompleterTokens(program);
+  // const [lancer_company_tokens] = await findLancerCompanyTokens(program);
+  // const [program_mint_authority, mint_bump] = await findProgramMintAuthority(program);
 
-  return await program.methods.approveRequest(mint_bump)
+  return await program.methods.approveRequest((1))// TODO remove this
   .accounts({
     creator: creator,
     submitter: submitter,
-    lancerCompleterTokens: lancer_completer_tokens,
-    lancerCompanyTokens: lancer_company_tokens,
+    // lancerCompleterTokens: lancer_completer_tokens,
+    // lancerCompanyTokens: lancer_company_tokens,
     payoutAccount: submitter_token_account,
     featureDataAccount: feature_data_account,
-    creatorCompanyTokensAccount: creator_company_tokens_account,
-    payoutCompleterTokensAccount: payout_completer_tokens_account,
+    // creatorCompanyTokensAccount: creator_company_tokens_account,
+    // payoutCompleterTokensAccount: payout_completer_tokens_account,
     featureTokenAccount: feature_token_account,
     programAuthority: program_authority,
-    programMintAuthority: program_mint_authority,
+    // programMintAuthority: program_mint_authority,
     lancerDaoTokenAccount: lancer_dao_token_account,
     lancerTokenProgramAuthority: lancer_token_program_authority,
     tokenProgram: TOKEN_PROGRAM_ID,
@@ -252,8 +251,8 @@ export const approveRequestInstruction = async (
 export const approveRequestThirdPartyInstruction = async (
   timestamp: string,
   third_party_token_account: PublicKey,
-  payout_completer_tokens_account: PublicKey,
-  creator_company_tokens_account: PublicKey,
+  // payout_completer_tokens_account: PublicKey,
+  // creator_company_tokens_account: PublicKey,
   creator: PublicKey,
   submitter: PublicKey,
   submitter_token_account: PublicKey,
@@ -283,28 +282,28 @@ export const approveRequestThirdPartyInstruction = async (
     program
   );
 
-  const [lancer_token_program_authority] = await findLancerProgramAuthority(program);
+  // const [lancer_token_program_authority] = await findLancerProgramAuthority(program);
 
-  const [lancer_completer_tokens] = await findLancerCompleterTokens(program);
-  const [lancer_company_tokens] = await findLancerCompanyTokens(program);
-  const [program_mint_authority, mint_bump] = await findProgramMintAuthority(program);
+  // const [lancer_completer_tokens] = await findLancerCompleterTokens(program);
+  // const [lancer_company_tokens] = await findLancerCompanyTokens(program);
+  // const [program_mint_authority, mint_bump] = await findProgramMintAuthority(program);
 
-  return await program.methods.approveRequestThirdParty(mint_bump)
+  return await program.methods.approveRequestThirdParty((1))
   .accounts({
     creator: creator,
     submitter: submitter,
-    lancerCompleterTokens: lancer_completer_tokens,
-    lancerCompanyTokens: lancer_company_tokens,
+    // lancerCompleterTokens: lancer_completer_tokens,
+    // lancerCompanyTokens: lancer_company_tokens,
     payoutAccount: submitter_token_account,
     featureDataAccount: feature_data_account,
-    creatorCompanyTokensAccount: creator_company_tokens_account,
-    payoutCompleterTokensAccount: payout_completer_tokens_account,
+    // creatorCompanyTokensAccount: creator_company_tokens_account,
+    // payoutCompleterTokensAccount: payout_completer_tokens_account,
     featureTokenAccount: feature_token_account,
     programAuthority: program_authority,
-    programMintAuthority: program_mint_authority,
+    // programMintAuthority: program_mint_authority,
     thirdParty: third_party_token_account,
     lancerDaoTokenAccount: lancer_dao_token_account,
-    lancerTokenProgramAuthority: lancer_token_program_authority,
+    // lancerTokenProgramAuthority: lancer_token_program_authority,
     tokenProgram: TOKEN_PROGRAM_ID,
   }).instruction();
 }

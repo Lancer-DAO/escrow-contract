@@ -36,7 +36,8 @@ pub fn handler(ctx: Context<SubmitRequestMultiple>, ) -> Result<()>
 
     for submitter in feature_data_account.approved_submitters
     {
-        if submitter.key() == ctx.accounts.submitter.key()
+        if submitter.key() == ctx.accounts.submitter.key() ||
+           ctx.accounts.submitter.key() == ctx.accounts.creator.key()
         {
             feature_data_account.request_submitted = true;
             is_approved_submitter = true;
@@ -45,7 +46,7 @@ pub fn handler(ctx: Context<SubmitRequestMultiple>, ) -> Result<()>
     }
 
     require!(is_approved_submitter, MonoError::NotApprovedSubmitter);
-    // msg!("feature data account = {}", &ctx.accounts.feature_data_account.key());
+
     msg!("{} submitted a request", ctx.accounts.submitter.key());
     Ok(())
 }

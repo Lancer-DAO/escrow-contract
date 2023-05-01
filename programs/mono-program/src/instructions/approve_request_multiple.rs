@@ -194,12 +194,11 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultiple<'in
     
     // pay the completer(s) 95%
     for (index, key) in feature_data_account.approved_submitters.iter().enumerate()
-    {msg!("{} indix with bounty amount {}", index, bounty_amount);
+    {
         if key == &Pubkey::default()
         {
             break;
         }
-        msg!("{} indix 2", index);
 
         let token_account_info = next_account_info(submitters_info_iter)?;
         let current_share = feature_data_account.approved_submitters_shares[index];
