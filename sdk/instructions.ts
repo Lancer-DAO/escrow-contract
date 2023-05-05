@@ -502,6 +502,7 @@ export const approveRequestMultipleTransaction = async (
   creator: PublicKey,
   mint: PublicKey,
   program: Program<MonoProgram>,
+  third_party?: PublicKey,
 ): Promise<Transaction> =>  {
   let modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
     units: 1400000
@@ -562,26 +563,53 @@ export const approveRequestMultipleTransaction = async (
     submitter5 = await getAssociatedTokenAddress(mint, fetch_submitters.approvedSubmitters[4])
   }
 
-  let approve_request_multiple_ix = await program.methods.approveRequestMultiple()
-  .accounts({
-    creator: creator,
-    featureDataAccount: feature_data_account,
-    featureTokenAccount: feature_token_account,
-    lancerDaoTokenAccount: lancer_dao_token_account,
-    lancerTokenProgramAuthority: lancer_token_program_authority,
-    programAuthority: program_authority,
-    tokenProgram: TOKEN_PROGRAM_ID,
-    systemProgram: SystemProgram.programId
-  })
-  .remainingAccounts([
-    { pubkey: submitter1, isSigner: false, isWritable: true},
-    { pubkey: submitter2, isSigner: false, isWritable: true},
-    { pubkey: submitter3, isSigner: false, isWritable: true},
-    { pubkey: submitter4, isSigner: false, isWritable: true},
-    { pubkey: submitter5, isSigner: false, isWritable: true},
-  ])
-  .instruction();
+  let approve_request_multiple_ix;
+  if (third_party) {
+    let third_party_token_account = await getAssociatedTokenAddress(mint, third_party);
+    approve_request_multiple_ix = await program.methods.approveRequestMultipleThirdParty()
+      .accounts({
+        creator: creator,
+        featureDataAccount: feature_data_account,
+        featureTokenAccount: feature_token_account,
+        lancerDaoTokenAccount: lancer_dao_token_account,
+        lancerTokenProgramAuthority: lancer_token_program_authority,
+        programAuthority: program_authority,
+        thirdParty: third_party_token_account,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId
+      })
+      .remainingAccounts([
+        { pubkey: submitter1, isSigner: false, isWritable: true},
+        { pubkey: submitter2, isSigner: false, isWritable: true},
+        { pubkey: submitter3, isSigner: false, isWritable: true},
+        { pubkey: submitter4, isSigner: false, isWritable: true},
+        { pubkey: submitter5, isSigner: false, isWritable: true},
+      ])
+      .instruction();
 
+  }
+  else
+  {
+    approve_request_multiple_ix = await program.methods.approveRequestMultiple()
+      .accounts({
+        creator: creator,
+        featureDataAccount: feature_data_account,
+        featureTokenAccount: feature_token_account,
+        lancerDaoTokenAccount: lancer_dao_token_account,
+        lancerTokenProgramAuthority: lancer_token_program_authority,
+        programAuthority: program_authority,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId
+      })
+      .remainingAccounts([
+        { pubkey: submitter1, isSigner: false, isWritable: true},
+        { pubkey: submitter2, isSigner: false, isWritable: true},
+        { pubkey: submitter3, isSigner: false, isWritable: true},
+        { pubkey: submitter4, isSigner: false, isWritable: true},
+        { pubkey: submitter5, isSigner: false, isWritable: true},
+      ])
+      .instruction();
+  }
   const transaction = new Transaction()
   .add(modifyComputeUnits)
   .add(addPriorityFee)

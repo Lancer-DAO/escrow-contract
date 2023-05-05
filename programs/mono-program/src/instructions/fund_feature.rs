@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{token::{Mint, TokenAccount, Token, self}};
 
-use crate::{constants::{MONO_DATA, PERCENT, FEE}, state::FeatureDataAccount, errors::MonoError};
+use crate::{constants::{MONO_DATA, PERCENT, FEE, LANCER_ADMIN}, state::FeatureDataAccount, errors::MonoError};
 
 #[derive(Accounts)]
 pub struct FundFeature<'info>
@@ -69,13 +69,18 @@ pub fn handler(ctx: Context<FundFeature>, amount: u64) -> Result<()>
         .unwrap()
         .checked_div(PERCENT)
         .unwrap();
-    let min_token_balance = amount
+    let min_token_balance;
+    
+    if ctx.accounts.feature_data_account.creator == LANCER_ADMIN {
+        min_token_balance = amount
+    } else{
+        min_token_balance = amount
         .checked_add(lancer_fee)
         .unwrap();
+    }
+
     let feature_data_account = &mut ctx.accounts.feature_data_account;
     feature_data_account.amount = amount;
-
-    // msg!("lancer fee = {}, min token balance = {}", lancer_fee, min_token_balance);
     require!(
         ctx.accounts.creator_token_account.amount >= 
         min_token_balance,
@@ -87,7 +92,7 @@ pub fn handler(ctx: Context<FundFeature>, amount: u64) -> Result<()>
             to: ctx.accounts.feature_token_account.to_account_info(),
             authority: ctx.accounts.creator.to_account_info(),
     };
-    
+
     token::transfer(
         CpiContext::new(ctx.accounts.token_program.to_account_info(), cpi_accounts), 
         min_token_balance

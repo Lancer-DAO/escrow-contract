@@ -24,64 +24,6 @@ describe("integration tests", () => {
     const WSOL_AMOUNT = 2 * LAMPORTS_PER_SOL;
 
 
-  it ("create lancer completer and lancer company tokens", async () => {
-    let lancer_admin = await createKeypair(provider);
-
-    const [lancer_completer_tokens] = await findLancerCompleterTokens(program);
-    const [lancer_company_tokens] = await findLancerCompanyTokens(program);
-    const [program_mint_authority] = await findProgramMintAuthority(program);
-
-    // console.log("signer = ", provider.publicKey.toString())
-    try{
-      await program.methods.createLancerTokens()
-        .accounts({
-          admin: lancer_admin.publicKey,
-          lancerCompleterTokens: lancer_completer_tokens,
-          lancerCompanyTokens: lancer_company_tokens,
-          programMintAuthority: program_mint_authority,
-          systemProgram: SystemProgram.programId,
-          tokenProgram: TOKEN_PROGRAM_ID,
-        })
-        .signers([lancer_admin])
-        .rpc();
-    }catch(err) {
-      // We get this error rather than InvalidAdmin
-      assert.equal((err as AnchorError).error.errorMessage, "A seeds constraint was violated")
-    };
-    let create_lancer_tokens_ix = await createLancerTokensInstruction(program);
-
-    await provider.sendAndConfirm(
-      new Transaction().add(create_lancer_tokens_ix),
-      []
-    );
-
-    const lancer_company_token_account_info = await provider.connection.getAccountInfo(lancer_company_tokens);
-    const lancer_completer_token_account_info = await provider.connection.getAccountInfo(lancer_completer_tokens);
-    // console.log("lancer token:",lancer_token)
-    const lancer_completer_token_mint_info = await getMint(provider.connection, lancer_completer_tokens);
-    const lancer_company_token_mint_info = await getMint(provider.connection, lancer_company_tokens);
-
-    // check that lancer tokens created are owned by btoken program
-    assert.equal(lancer_completer_token_account_info.owner.toString(), TOKEN_PROGRAM_ID.toString());
-    assert.equal(lancer_company_token_account_info.owner.toString(), TOKEN_PROGRAM_ID.toString());
-
-    // check appropriate information exist on the new Mints
-    assert.equal(lancer_company_token_mint_info.decimals, MINT_DECIMALS);
-    assert.equal(lancer_company_token_mint_info.address.toString(), lancer_company_tokens.toString());
-    assert.equal(lancer_company_token_mint_info.supply.toString(), "0");
-    assert.equal(lancer_company_token_mint_info.isInitialized, true);
-    assert.equal(lancer_company_token_mint_info.mintAuthority.toString(), program_mint_authority.toString());
-
-    assert.equal(lancer_completer_token_mint_info.decimals, MINT_DECIMALS);
-    assert.equal(lancer_completer_token_mint_info.address.toString(), lancer_completer_tokens.toString());
-    assert.equal(lancer_completer_token_mint_info.supply.toString(), "0");
-    assert.equal(lancer_completer_token_mint_info.isInitialized, true);
-    assert.equal(lancer_completer_token_mint_info.mintAuthority.toString(), program_mint_authority.toString());
-    
-
-
-  })
-
   it("test createFFAInstruction works", async () => {
     // Add your test here.
     let creator = await createKeypair(provider);
@@ -417,17 +359,6 @@ describe("integration tests", () => {
     );
     await add_more_token(provider, creator_wsol_account.address, WSOL_AMOUNT);
 
-    const [lancer_completer_tokens] = await findLancerCompleterTokens(program);
-    const [lancer_company_tokens] = await findLancerCompanyTokens(program);
-    const [program_mint_authority, mint_bump] = await findProgramMintAuthority(program);
-
-    const creator_company_tokens_account = await getOrCreateAssociatedTokenAccount(
-      provider.connection,
-      creator,
-      lancer_company_tokens,
-      creator.publicKey
-    )
-
 
     const create_FFA_ix = await createFeatureFundingAccountInstruction(
       WSOL_ADDRESS,
@@ -472,13 +403,7 @@ describe("integration tests", () => {
 
       // add pubkey to list of accepted submitters(AddApprovedSubmitters)
       const submitter1 = await createKeypair(provider);
-      const payout_completer_tokens_account = await getOrCreateAssociatedTokenAccount(
-        provider.connection,
-        creator,
-        lancer_completer_tokens,
-        submitter1.publicKey
-      )
-  
+
       const submitter1_wsol_account = await getOrCreateAssociatedTokenAccount(
         provider.connection,
         submitter1,
@@ -495,18 +420,6 @@ describe("integration tests", () => {
       tx = await provider.sendAndConfirm(new Transaction().add(addApproveSubmitterIx), [creator]); 
 
       // test approve request fails if there is no submitted request(ApproveRequest)  
-      let [feature_data_account] = await findFeatureAccount(
-        acc.unixTimestamp,
-        creator.publicKey,
-        program
-      );    
-      let [feature_token_account] = await findFeatureTokenAccount(
-        acc.unixTimestamp,
-        creator.publicKey,
-        WSOL_ADDRESS,
-        program
-      );
-      let [program_authority] = await findProgramAuthority(program);
   
       const [lancer_dao_token_account] = await findLancerTokenAccount(
         WSOL_ADDRESS,
@@ -535,8 +448,6 @@ describe("integration tests", () => {
 
       let approveRequestIx = await approveRequestInstruction(
         acc.unixTimestamp,
-        // payout_completer_tokens_account.address,
-        // creator_company_tokens_account.address,
         creator.publicKey,
         submitter1.publicKey,
         submitter1_wsol_account.address,
@@ -573,7 +484,6 @@ describe("integration tests", () => {
 
       let lancer_dao_token_account_before_balance = await provider.connection.getTokenAccountBalance(lancer_dao_token_account);
       let withdrawer_wsol_account_before_balance = await provider.connection.getTokenAccountBalance(withdrawer_wsol_account.address);
-
 
       let withdraw_tokens_ix = await withdrawTokensInstruction(
         LANCER_FEE * amount,

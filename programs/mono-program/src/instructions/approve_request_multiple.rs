@@ -5,7 +5,7 @@ use std::{ops::{Add, Mul, Div}};
 use anchor_lang::prelude::*;
 use anchor_spl::{token::{TokenAccount, Token, self, Transfer, CloseAccount, spl_token}};
 
-use crate::{constants::{MONO_DATA, PERCENT, LANCER_DAO, COMPLETER_FEE, }, state::FeatureDataAccount, errors::MonoError};
+use crate::{constants::{MONO_DATA, PERCENT, LANCER_DAO, COMPLETER_FEE, LANCER_ADMIN, LANCER_FEE, }, state::FeatureDataAccount, errors::MonoError};
 
 #[derive(Accounts)]
 pub struct ApproveRequestMultiple<'info>
@@ -166,14 +166,14 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultiple<'in
     //TODO - test for this
     require!(feature_data_account.is_multiple_submitters, MonoError::ExpectedMultipleSubmitters);
 
-    let mut max_share = 0.0;
+    let mut max_share: f64 = 0.0;
     for share in feature_data_account.approved_submitters_shares
     {
-        max_share = max_share.add(share);
+        max_share = max_share.add(share as f64);
     }
 
     // TODO - Test for this
-    require!(max_share == PERCENT as f32, MonoError::ShareMustBe100);
+    require!(max_share == PERCENT as f64, MonoError::ShareMustBe100);
 
     let transfer_seeds = &[
         MONO_DATA.as_bytes(),
@@ -181,17 +181,29 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultiple<'in
     ];
     let transfer_signer = [&transfer_seeds[..]];
 
-    // let mint_seeds = &[
-    //     MINT_AUTHORITY.as_bytes(),
-    //     &[mint_bump]
-    // ];
-    // let mint_signer = [&mint_seeds[..]];
 
-
-    let bounty_amount = feature_data_account.amount;
+    let mut bounty_amount = feature_data_account.amount;
 
     let submitters_info_iter = &mut ctx.remaining_accounts.iter(); 
     
+    // pay lancer fee if admin did not create the bounty
+    if feature_data_account.creator.key() != LANCER_ADMIN
+    {
+        let lancer_fee = (bounty_amount as f64)
+        // .mul(current_share as f64)
+        .mul(LANCER_FEE as f64)
+        // .div(PERCENT as f64)
+        .div(PERCENT as f64) as u64;
+
+        token::transfer(
+            ctx.accounts.transfer_bounty_fee_context().with_signer(&transfer_signer), 
+        lancer_fee
+        )?;
+
+        ctx.accounts.feature_token_account.reload()?;
+    }
+
+    bounty_amount = ctx.accounts.feature_token_account.amount;
     // pay the completer(s) 95%
     for (index, key) in feature_data_account.approved_submitters.iter().enumerate()
     {
@@ -221,11 +233,11 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultiple<'in
             MonoError::NotApprovedSubmitter
         );
 
-        let current_submitter_fee = (bounty_amount as f32)
-            .mul(current_share)
-            .mul(COMPLETER_FEE as f32)
-            .div(PERCENT as f32)
-            .div(PERCENT as f32) as u64;
+        let current_submitter_fee = (bounty_amount as f64)
+            .mul(current_share as f64)
+            // .mul(COMPLETER_FEE as f64)
+            // .div(PERCENT as f64)
+            .div(PERCENT as f64) as u64;
 
         token::transfer(
             ctx.accounts.transfer_bounty_context(token_account_info).with_signer(&transfer_signer), 
@@ -234,11 +246,7 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultiple<'in
         ctx.accounts.feature_token_account.reload()?;
     }
 
-    let lancer_fee = ctx.accounts.feature_token_account.amount;
-    token::transfer(
-        ctx.accounts.transfer_bounty_fee_context().with_signer(&transfer_signer), 
-    lancer_fee
-    )?;
+    // let lancer_fee = 
 
     // Close token account owned by program that stored funds
     token::close_account(

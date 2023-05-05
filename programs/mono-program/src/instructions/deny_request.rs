@@ -32,6 +32,6 @@ pub fn handler(ctx: Context<DenyRequest>, ) -> Result<()>
     feature_data_account.request_submitted = false;
     feature_data_account.payout_account = Pubkey::default();
     feature_data_account.current_submitter = Pubkey::default();
-    // msg!("feature data account = {}", &ctx.accounts.feature_data_account.key());
+
     Ok(())
 }
