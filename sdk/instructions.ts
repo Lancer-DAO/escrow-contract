@@ -390,24 +390,6 @@ const [program_authority] = await findProgramAuthority(
   }).instruction();
 }
 
-export const createLancerTokensInstruction = async (
-  program: Program<MonoProgram>,
-): Promise<TransactionInstruction> =>  {
-
-  const [lancer_completer_tokens] = await findLancerCompleterTokens(program);
-  const [lancer_company_tokens] = await findLancerCompanyTokens(program);
-  const [program_mint_authority] = await findProgramMintAuthority(program);
-
-  return  await program.methods.createLancerTokens()
-    .accounts({
-      admin: new PublicKey(LANCER_ADMIN),
-      lancerCompleterTokens: lancer_completer_tokens,
-      lancerCompanyTokens: lancer_company_tokens,
-      programMintAuthority: program_mint_authority,
-      systemProgram: SystemProgram.programId,
-      tokenProgram: TOKEN_PROGRAM_ID,
-    }).instruction()
-}
 
 export const withdrawTokensInstruction = async (
   amount: number,
