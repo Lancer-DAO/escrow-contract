@@ -12,7 +12,10 @@ pub enum MonoError
     #[msg("Max Number of Approved Submitters already reached")]
     MaxApprovedSubmitters,
 
-    #[msg("Max Number of Approved Submitters already reached")]
+    #[msg("Submitter Key Already Present in ApprovedSubmitters List")]
+    SubmitterAlreadyPresent,
+
+    #[msg("Min Number of Approved Submitters already reached")]
     MinApprovedSubmitters,
 
     #[msg("There is an active request already present")]

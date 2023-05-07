@@ -5,7 +5,7 @@ use std::{ops::{Add, Mul, Div, Sub}};
 use anchor_lang::prelude::*;
 use anchor_spl::{token::{TokenAccount, Token, self, Transfer, CloseAccount, spl_token}};
 
-use crate::{constants::{MONO_DATA, PERCENT, LANCER_DAO, COMPLETER_FEE, LANCER_ADMIN, LANCER_FEE, THIRD_PARTY_FEE, }, state::FeatureDataAccount, errors::MonoError};
+use crate::{constants::{MONO_DATA, PERCENT, LANCER_DAO, LANCER_ADMIN, LANCER_FEE, THIRD_PARTY_FEE, }, state::FeatureDataAccount, errors::MonoError};
 
 #[derive(Accounts)]
 pub struct ApproveRequestMultipleThirdParty<'info>

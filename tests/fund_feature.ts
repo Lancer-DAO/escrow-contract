@@ -7,7 +7,8 @@ import { COMPLETER_FEE, LANCER_FEE, LANCER_FEE_THIRD_PARTY, MINT_DECIMALS, MONO_
 import { ComputeBudgetInstruction, ComputeBudgetProgram, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction } from "@solana/web3.js";
 import { add_more_token, createKeypair } from "./utils";
 import { findFeatureAccount, findFeatureTokenAccount, findLancerCompanyTokens, findLancerCompleterTokens, findLancerProgramAuthority, findLancerTokenAccount, findProgramAuthority, findProgramMintAuthority } from "../sdk/pda";
-import { addApprovedSubmittersInstruction, approveRequestInstruction, approveRequestMultipleTransaction, approveRequestThirdPartyInstruction, cancelFeatureInstruction, createFeatureFundingAccountInstruction, createLancerTokenAccountInstruction, createLancerTokensInstruction, denyRequestInstruction, enableMultipleSubmittersInstruction, fundFeatureInstruction, removeApprovedSubmittersInstruction, setShareMultipleSubmittersInstruction, submitRequestInstruction, submitRequestMultipleInstruction, voteToCancelInstruction, withdrawTokensInstruction } from "../sdk/instructions";
+import { addApprovedSubmittersInstruction, approveRequestInstruction, approveRequestMultipleTransaction, approveRequestThirdPartyInstruction, cancelFeatureInstruction, createFeatureFundingAccountInstruction, createLancerTokenAccountInstruction, denyRequestInstruction, enableMultipleSubmittersInstruction, fundFeatureInstruction, removeApprovedSubmittersInstruction, setShareMultipleSubmittersInstruction, submitRequestInstruction, submitRequestMultipleInstruction, voteToCancelInstruction, withdrawTokensInstruction } from "../sdk/instructions";
+
 import { assert } from "chai";
 import { min } from "bn.js";
 
@@ -119,6 +120,321 @@ describe("fund feature tests", () => {
           assert.equal(acc.amount.toNumber(), WSOL_AMOUNT)
     
       });
-    
 
+      it ("if admin = creator, creator does not pay extra 5% upfront", async () => {
+        let payer = await createKeypair(provider);
+        let funder = await provider.publicKey;
+        const creator_wsol_account = await getOrCreateAssociatedTokenAccount(
+            provider.connection,
+            payer,
+            WSOL_ADDRESS,
+            funder
+        );
+    
+        await add_more_token(provider, creator_wsol_account.address, WSOL_AMOUNT);
+    
+        const create_FFA_ix = await createFeatureFundingAccountInstruction(
+          WSOL_ADDRESS,
+          funder,
+          program
+        );
+        const tx1 = await provider.sendAndConfirm(new Transaction().add(create_FFA_ix), []);
+        console.log("createFFA(2nd test) transaction signature", tx1);
+    
+        // transfer WSOL
+        const accounts = await provider.connection.getParsedProgramAccounts(
+          program.programId, 
+          {
+            filters: [
+              {
+                dataSize: 381, // number of bytes
+              },
+              {
+                memcmp: {
+                  offset: 8, // number of bytes
+                  bytes: funder.toBase58(), // base58 encoded string
+                },
+              },
+            ],      
+          }
+        );
+    
+        let acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+        const [feature_token_account] = await findFeatureTokenAccount(
+          acc.unixTimestamp,
+          funder,
+          WSOL_ADDRESS,
+          program
+        );
+        const [feature_data_account] = await findFeatureAccount(
+          acc.unixTimestamp,
+          funder,
+          program
+        );
+        const [program_authority] = await findProgramAuthority(program);
+
+        let bal = await provider.connection.getTokenAccountBalance(creator_wsol_account.address);
+        let amount = bal.value.uiAmount * LAMPORTS_PER_SOL;
+        // test insuffiecient 
+        try {
+          await program.methods.fundFeature(new anchor.BN(amount + 1))
+            .accounts({
+              creator: funder,
+              fundsMint: WSOL_ADDRESS,
+              creatorTokenAccount: creator_wsol_account.address,
+              featureDataAccount: feature_data_account,
+              featureTokenAccount: feature_token_account,
+              programAuthority: program_authority,
+              tokenProgram: TOKEN_PROGRAM_ID,
+              systemProgram: SystemProgram.programId,
+            }).signers([]).rpc();
+        } catch (err) {
+          assert.equal((err as AnchorError).error.errorMessage, "Insufficient funds to pay lancer fee")
+        }
+   
+        // check balaance before funding feature
+        const FFA_token_account_before_balance = await provider.connection.getTokenAccountBalance(feature_token_account)
+        let fund_feature_ix = await fundFeatureInstruction(
+          amount,
+          acc.unixTimestamp,
+          funder,
+          WSOL_ADDRESS,
+          program
+        );
+    
+          const tx2 = await provider.sendAndConfirm(new Transaction().add(fund_feature_ix), []);
+          console.log("fundFeature transaction signature", tx2);
+          const FFA_token_account_after_balance = await provider.connection.getTokenAccountBalance(feature_token_account)
+          assert.equal(
+            FFA_token_account_after_balance.value.amount, 
+            (
+              (amount) + parseInt(FFA_token_account_before_balance.value.amount)
+            ).toString()
+          );
+          acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+    
+          assert.equal(acc.amount.toNumber(), amount)
+
+      })
+
+      it ("test amount gets added on if fundFeature is called twice", async () => {
+        let creator = await createKeypair(provider);
+    
+        const creator_wsol_account = await getOrCreateAssociatedTokenAccount(
+            provider.connection,
+            creator,
+            WSOL_ADDRESS,
+            creator.publicKey
+        );
+
+        await add_more_token(provider, creator_wsol_account.address, WSOL_AMOUNT);
+    
+        const create_FFA_ix = await createFeatureFundingAccountInstruction(
+          WSOL_ADDRESS,
+          creator.publicKey,
+          program
+        );
+        const tx1 = await provider.sendAndConfirm(new Transaction().add(create_FFA_ix), [creator]);
+        console.log("createFFA(2nd test) transaction signature", tx1);
+    
+        // transfer WSOL
+        const accounts = await provider.connection.getParsedProgramAccounts(
+          program.programId, 
+          {
+            filters: [
+              {
+                dataSize: 381, // number of bytes
+              },
+              {
+                memcmp: {
+                  offset: 8, // number of bytes
+                  bytes: creator.publicKey.toBase58(), // base58 encoded string
+                },
+              },
+            ],      
+          }
+        );
+    
+        let acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+        const [feature_token_account] = await findFeatureTokenAccount(
+          acc.unixTimestamp,
+          creator.publicKey,
+          WSOL_ADDRESS,
+          program
+        );
+        const [feature_data_account] = await findFeatureAccount(
+          acc.unixTimestamp,
+          creator.publicKey,
+          program
+        );
+        const [program_authority] = await findProgramAuthority(program);
+    
+        // test insuffiecient 
+        try {
+          await program.methods.fundFeature(new anchor.BN(WSOL_AMOUNT))
+            .accounts({
+              creator: creator.publicKey,
+              fundsMint: WSOL_ADDRESS,
+              creatorTokenAccount: creator_wsol_account.address,
+              featureDataAccount: feature_data_account,
+              featureTokenAccount: feature_token_account,
+              programAuthority: program_authority,
+              tokenProgram: TOKEN_PROGRAM_ID,
+              systemProgram: SystemProgram.programId,
+            }).signers([creator]).rpc()
+        } catch (err) {
+          assert.equal((err as AnchorError).error.errorMessage, "Insufficient funds to pay lancer fee")
+        }
+    
+        //add more SOL
+        await add_more_token(provider, creator_wsol_account.address, WSOL_AMOUNT);
+    
+        // check balaance before funding feature
+        const FFA_token_account_before_balance = await provider.connection.getTokenAccountBalance(feature_token_account)
+        let fund_feature_ix1 = await fundFeatureInstruction(
+          WSOL_AMOUNT,
+          acc.unixTimestamp,
+          creator.publicKey,
+          WSOL_ADDRESS,
+          program
+        );
+        let fund_feature_ix2 = await fundFeatureInstruction(
+          WSOL_AMOUNT,
+          acc.unixTimestamp,
+          creator.publicKey,
+          WSOL_ADDRESS,
+          program
+        );
+        await add_more_token(provider, creator_wsol_account.address, WSOL_AMOUNT);
+
+        const tx2 = await provider.sendAndConfirm(
+          new Transaction()
+            .add(fund_feature_ix1)
+            .add(fund_feature_ix2),
+            [creator]
+        );
+
+          console.log("fundFeature transaction signature", tx2);
+          const FFA_token_account_after_balance = await provider.connection.getTokenAccountBalance(feature_token_account)
+          assert.equal(
+            FFA_token_account_after_balance.value.amount, 
+            (//token account needs to be able to pay both lancer and completer
+              ((LANCER_FEE + COMPLETER_FEE) * (WSOL_AMOUNT + WSOL_AMOUNT)) + parseInt(FFA_token_account_before_balance.value.amount)
+            ).toString()
+          );
+          acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+          
+          assert.equal(acc.amount.toNumber(), WSOL_AMOUNT + WSOL_AMOUNT)
+
+      })
+
+      it ("(admin = creator)test amount gets added but still no lancer fee if fundFeature is called twice", async () => {
+        let payer = await createKeypair(provider);
+        let funder = await provider.publicKey;
+
+        const creator_wsol_account = await getOrCreateAssociatedTokenAccount(
+            provider.connection,
+            payer,
+            WSOL_ADDRESS,
+            funder
+        );
+
+        await add_more_token(provider, creator_wsol_account.address, WSOL_AMOUNT);
+
+        const create_FFA_ix = await createFeatureFundingAccountInstruction(
+          WSOL_ADDRESS,
+          funder,
+          program
+        );
+        const tx1 = await provider.sendAndConfirm(new Transaction().add(create_FFA_ix), []);
+        console.log("createFFA(2nd test) transaction signature", tx1);
+    
+        // transfer WSOL
+        const accounts = await provider.connection.getParsedProgramAccounts(
+          program.programId, 
+          {
+            filters: [
+              {
+                dataSize: 381, // number of bytes
+              },
+              {
+                memcmp: {
+                  offset: 8, // number of bytes
+                  bytes: funder.toBase58(), // base58 encoded string
+                },
+              },
+            ],      
+          }
+        );
+    
+        let acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+        const [feature_token_account] = await findFeatureTokenAccount(
+          acc.unixTimestamp,
+          funder,
+          WSOL_ADDRESS,
+          program
+        );
+        const [feature_data_account] = await findFeatureAccount(
+          acc.unixTimestamp,
+          funder,
+          program
+        );
+        const [program_authority] = await findProgramAuthority(program);
+    
+        // test insuffiecient 
+        try {
+          await program.methods.fundFeature(new anchor.BN(WSOL_AMOUNT + WSOL_AMOUNT))
+            .accounts({
+              creator: funder,
+              fundsMint: WSOL_ADDRESS,
+              creatorTokenAccount: creator_wsol_account.address,
+              featureDataAccount: feature_data_account,
+              featureTokenAccount: feature_token_account,
+              programAuthority: program_authority,
+              tokenProgram: TOKEN_PROGRAM_ID,
+              systemProgram: SystemProgram.programId,
+            }).signers([]).rpc()
+        } catch (err) {
+          assert.equal((err as AnchorError).error.errorMessage, "Insufficient funds to pay lancer fee")
+        }
+    
+        // check balaance before funding feature
+        const FFA_token_account_before_balance = await provider.connection.getTokenAccountBalance(feature_token_account)
+        let fund_feature_ix1 = await fundFeatureInstruction(
+          WSOL_AMOUNT,
+          acc.unixTimestamp,
+          funder,
+          WSOL_ADDRESS,
+          program
+        );
+        let fund_feature_ix2 = await fundFeatureInstruction(
+          WSOL_AMOUNT,
+          acc.unixTimestamp,
+          funder,
+          WSOL_ADDRESS,
+          program
+        );
+        await add_more_token(provider, creator_wsol_account.address, WSOL_AMOUNT);
+
+        const tx2 = await provider.sendAndConfirm(
+          new Transaction()
+            .add(fund_feature_ix1)
+            .add(fund_feature_ix2),
+            []
+        );
+        console.log("fundFeature transaction signature", tx2);
+
+      const FFA_token_account_after_balance = await provider.connection.getTokenAccountBalance(feature_token_account)
+          assert.equal(
+            FFA_token_account_after_balance.value.amount, 
+            (//token account needs to be able to pay both lancer and completer
+              ((WSOL_AMOUNT + WSOL_AMOUNT)) + parseInt(FFA_token_account_before_balance.value.amount)
+            ).toString()
+          );
+          acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+          
+          assert.equal(acc.amount.toNumber(), WSOL_AMOUNT + WSOL_AMOUNT)
+
+      })
+        
 })

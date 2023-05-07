@@ -7,7 +7,7 @@ import { COMPLETER_FEE, LANCER_FEE, LANCER_FEE_THIRD_PARTY, MINT_DECIMALS, MONO_
 import { ComputeBudgetInstruction, ComputeBudgetProgram, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction } from "@solana/web3.js";
 import { add_more_token, createKeypair } from "./utils";
 import { findFeatureAccount, findFeatureTokenAccount, findLancerCompanyTokens, findLancerCompleterTokens, findLancerProgramAuthority, findLancerTokenAccount, findProgramAuthority, findProgramMintAuthority } from "../sdk/pda";
-import { addApprovedSubmittersInstruction, approveRequestInstruction, approveRequestMultipleTransaction, approveRequestThirdPartyInstruction, cancelFeatureInstruction, createFeatureFundingAccountInstruction, createLancerTokenAccountInstruction, createLancerTokensInstruction, denyRequestInstruction, enableMultipleSubmittersInstruction, fundFeatureInstruction, removeApprovedSubmittersInstruction, setShareMultipleSubmittersInstruction, submitRequestInstruction, submitRequestMultipleInstruction, voteToCancelInstruction, withdrawTokensInstruction } from "../sdk/instructions";
+import { addApprovedSubmittersInstruction, approveRequestInstruction, approveRequestMultipleTransaction, approveRequestThirdPartyInstruction, cancelFeatureInstruction, createFeatureFundingAccountInstruction, createLancerTokenAccountInstruction, denyRequestInstruction, enableMultipleSubmittersInstruction, fundFeatureInstruction, removeApprovedSubmittersInstruction, setShareMultipleSubmittersInstruction, submitRequestInstruction, submitRequestMultipleInstruction, voteToCancelInstruction, withdrawTokensInstruction } from "../sdk/instructions";
 import { assert } from "chai";
 import { min } from "bn.js";
 
@@ -80,18 +80,6 @@ describe("approve Request tests", () => {
         );
         await add_more_token(provider, creator_wsol_account.address, WSOL_AMOUNT);
     
-        // const [lancer_completer_tokens] = await findLancerCompleterTokens(program);
-        // const [lancer_company_tokens] = await findLancerCompanyTokens(program);
-        // const [program_mint_authority, mint_bump] = await findProgramMintAuthority(program);
-    
-        // const creator_company_tokens_account = await getOrCreateAssociatedTokenAccount(
-        //   provider.connection,
-        //   creator,
-        //   lancer_company_tokens,
-        //   creator.publicKey
-        // )
-    
-    
         const create_FFA_ix = await createFeatureFundingAccountInstruction(
           WSOL_ADDRESS,
           creator.publicKey,
@@ -135,13 +123,7 @@ describe("approve Request tests", () => {
     
           // add pubkey to list of accepted submitters(AddApprovedSubmitters)
           const submitter1 = await createKeypair(provider);
-          // const payout_completer_tokens_account = await getOrCreateAssociatedTokenAccount(
-          //   provider.connection,
-          //   creator,
-          //   lancer_completer_tokens,
-          //   submitter1.publicKey
-          // )
-      
+    
           const submitter1_wsol_account = await getOrCreateAssociatedTokenAccount(
             provider.connection,
             submitter1,
@@ -182,19 +164,14 @@ describe("approve Request tests", () => {
           );
 
           try{
-            let approveRequestIx = await program.methods.approveRequest((1))// TODO remove this
+            let approveRequestIx = await program.methods.approveRequest()
             .accounts({
               creator: creator.publicKey,
               submitter: submitter1.publicKey,
-              // lancerCompleterTokens: lancer_completer_tokens,
-              // lancerCompanyTokens: lancer_company_tokens,
               payoutAccount: submitter1_wsol_account.address,
               featureDataAccount: feature_data_account,
               featureTokenAccount: feature_token_account,
-              // creatorCompanyTokensAccount: creator_company_tokens_account.address,
-              // payoutCompleterTokensAccount: payout_completer_tokens_account.address,
               programAuthority: program_authority,
-              // programMintAuthority: program_mint_authority,
               lancerTokenProgramAuthority: lancer_token_program_authority,
               lancerDaoTokenAccount: lancer_dao_token_account,
               tokenProgram: TOKEN_PROGRAM_ID,
@@ -219,13 +196,9 @@ describe("approve Request tests", () => {
           const lancer_token_account_before_balance = await provider.connection.getTokenAccountBalance(lancer_dao_token_account)
           acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
     
-        //  let creator_company_tokens_account_before_balance =  await provider.connection.getTokenAccountBalance(creator_company_tokens_account.address);
-        //  let payout_completer_tokens_account_before_balance = await provider.connection.getTokenAccountBalance(payout_completer_tokens_account.address);
     
           let approveRequestIx = await approveRequestInstruction(
             acc.unixTimestamp,
-            // payout_completer_tokens_account.address,
-            // creator_company_tokens_account.address,
             creator.publicKey,
             submitter1.publicKey,
             submitter1_wsol_account.address,
@@ -249,22 +222,7 @@ describe("approve Request tests", () => {
               (// 5% from both sides
                 (LANCER_FEE * amount) + parseInt(lancer_token_account_before_balance.value.amount)
               ).toString()
-            )
-    
-    
-            // check that lancer completer and company tokens are minted
-            // let creator_company_tokens_account_after_balance =  await provider.connection.getTokenAccountBalance(creator_company_tokens_account.address);
-            // let payout_completer_tokens_account_after_balance = await provider.connection.getTokenAccountBalance(payout_completer_tokens_account.address);
-       
-            // assert.equal(
-            //   creator_company_tokens_account_after_balance.value.amount,
-            //   parseInt(creator_company_tokens_account_before_balance.value.amount + amount).toString()
-            // )
-            // assert.equal(
-            //   payout_completer_tokens_account_after_balance.value.amount,
-            //   parseInt(payout_completer_tokens_account_before_balance.value.amount + amount).toString()
-            // )
-    
+            )    
     
             // Check token account and data account are closed
             let closed_token_account = await provider.connection.getBalance(feature_token_account);
@@ -367,37 +325,16 @@ describe("approve Request tests", () => {
             WSOL_ADDRESS,
             program
           );
-        //   const [lancer_completer_tokens] = await findLancerCompleterTokens(program);
-        //   const [lancer_company_tokens] = await findLancerCompanyTokens(program);
-        //   const [program_mint_authority, mint_bump] = await findProgramMintAuthority(program);
-    
-        //   const creator_company_tokens_account = await getOrCreateAssociatedTokenAccount(
-        //     provider.connection,
-        //     creator,
-        //     lancer_company_tokens,
-        //     creator.publicKey
-        //   )
-        //   const payout_completer_tokens_account = await getOrCreateAssociatedTokenAccount(
-        //     provider.connection,
-        //     creator,
-        //     lancer_completer_tokens,
-        //     submitter1.publicKey
-        //   )
 
           try{
-            await program.methods.approveRequest((1))
+            await program.methods.approveRequest()
             .accounts({
               creator: creator.publicKey,
               submitter: submitter1.publicKey,
-              // lancerCompleterTokens: lancer_completer_tokens,
-              // lancerCompanyTokens: lancer_company_tokens,
               payoutAccount: submitter1_wsol_account.address,
               featureDataAccount: feature_data_account,
               featureTokenAccount: feature_token_account,
-              // creatorCompanyTokensAccount: creator_company_tokens_account.address,
-              // payoutCompleterTokensAccount: payout_completer_tokens_account.address,
               programAuthority: program_authority,
-              // programMintAuthority: program_mint_authority,
               lancerTokenProgramAuthority: lancer_token_program_authority,
               lancerDaoTokenAccount: lancer_dao_token_account,
               tokenProgram: TOKEN_PROGRAM_ID,
@@ -427,19 +364,13 @@ describe("approve Request tests", () => {
     
             let approveRequestIx = await approveRequestInstruction(
               acc.unixTimestamp,
-              // payout_completer_tokens_account.address,
-              // creator_company_tokens_account.address,
               creator.publicKey,
               submitter1.publicKey,
               submitter1_wsol_account.address,
               WSOL_ADDRESS,
               program
             );
-            try {
-                tx = await provider.sendAndConfirm(new Transaction().add(approveRequestIx), [creator])                
-            } catch (err) {
-                console.log("err : ", err);
-            }
+            tx = await provider.sendAndConfirm(new Transaction().add(approveRequestIx), [creator])
             console.log("approve Request tx = ", tx);
     
             const submitter_token_account_after_balance = await provider.connection.getTokenAccountBalance(submitter1_wsol_account.address)
@@ -457,22 +388,7 @@ describe("approve Request tests", () => {
                 (LANCER_FEE * amount) + parseInt(lancer_token_account_before_balance.value.amount)
               ).toString()
             )
-
-            // // check that lancer completer and company tokens are minted
-            // let creator_company_tokens_account_after_balance =  await provider.connection.getTokenAccountBalance(creator_company_tokens_account.address);
-            // let payout_completer_tokens_account_after_balance = await provider.connection.getTokenAccountBalance(payout_completer_tokens_account.address);
-       
-            // assert.equal(
-            //   creator_company_tokens_account_after_balance.value.amount,
-            //   parseInt(creator_company_tokens_account_before_balance.value.amount + amount).toString()
-            // )
-            // assert.equal(
-            //   payout_completer_tokens_account_after_balance.value.amount,
-            //   parseInt(payout_completer_tokens_account_before_balance.value.amount + amount).toString()
-            // )
-    
-    
-        //     // Check token account and data account are closed
+           // Check token account and data account are closed
             let closed_token_account = await provider.connection.getBalance(feature_token_account);
             let closed_data_account = await provider.connection.getBalance(feature_data_account);
        
@@ -530,12 +446,12 @@ describe("approve Request tests", () => {
           program
         );
     
-          tx = await provider.sendAndConfirm(new Transaction().add(fund_feature_ix), [creator]);
-          console.log("fundFeature transaction signature", tx);
-    
-          // add pubkey to list of accepted submitters(AddApprovedSubmitters)
-          const submitter1 = await createKeypair(provider);
+      tx = await provider.sendAndConfirm(new Transaction().add(fund_feature_ix), [creator]);
+      console.log("fundFeature transaction signature", tx);
 
+      // add pubkey to list of accepted submitters(AddApprovedSubmitters)
+      const submitter1 = await createKeypair(provider);
+        
           const submitter1_wsol_account = await getOrCreateAssociatedTokenAccount(
             provider.connection,
             submitter1,
@@ -599,17 +515,10 @@ describe("approve Request tests", () => {
           const lancer_token_account_before_balance = await provider.connection.getTokenAccountBalance(lancer_dao_token_account)
           const third_party_tokens_account_before_balance = await provider.connection.getTokenAccountBalance(third_party_wsol_account.address);
           acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
-    
-      
-    
-        //   let creator_company_tokens_account_before_balance =  await provider.connection.getTokenAccountBalance(creator_company_tokens_account.address);
-        //   let payout_completer_tokens_account_before_balance = await provider.connection.getTokenAccountBalance(payout_completer_tokens_account.address);
 
           let approveRequestThirdPartyIx = await approveRequestThirdPartyInstruction(
             acc.unixTimestamp,
             third_party_wsol_account.address,
-            // payout_completer_tokens_account.address,
-            // creator_company_tokens_account.address,
             creator.publicKey,
             submitter1.publicKey,
             submitter1_wsol_account.address,
@@ -620,9 +529,9 @@ describe("approve Request tests", () => {
           console.log("approve Request Third party tx = ", tx);
     
           const submitter_token_account_after_balance = await provider.connection.getTokenAccountBalance(submitter1_wsol_account.address)
-            const lancer_token_account_after_balance = await provider.connection.getTokenAccountBalance(lancer_dao_token_account)
-            const third_party_tokens_account_after_balance = await provider.connection.getTokenAccountBalance(third_party_wsol_account.address);
-    
+         const lancer_token_account_after_balance = await provider.connection.getTokenAccountBalance(lancer_dao_token_account)
+         const third_party_tokens_account_after_balance = await provider.connection.getTokenAccountBalance(third_party_wsol_account.address);
+
             assert.equal(
               submitter_token_account_after_balance.value.amount, 
               (// submitter gets 95% of bounty amount
@@ -922,60 +831,7 @@ describe("approve Request tests", () => {
         ); 
         
         acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
-    
-    // try{
-        //   let modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
-        //     units: 1400000
-        //   });
-        //   const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({
-        //     microLamports: 1
-        //   });
-    
-        //   let another_mint = await createMint(
-        //     provider.connection,
-        //     creator,
-        //     creator.publicKey,
-        //     creator.publicKey,
-        //     10
-        //   );
-        //   const submitter1_another_token_account = await getOrCreateAssociatedTokenAccount(
-        //     provider.connection,
-        //     submitter1,
-        //     another_mint,
-        //     submitter1.publicKey
-        //   );
-      
-        //   let approve_request_multiple_ix = await program.methods.approveRequestMultiple()
-        //   .accounts({
-        //     creator: creator.publicKey,
-        //     featureDataAccount: feature_data_account,
-        //     featureTokenAccount: feature_token_account,
-        //     lancerDaoTokenAccount: lancer_dao_token_account,
-        //     lancerTokenProgramAuthority: lancer_token_program_authority,
-        //     programAuthority: program_authority,
-        //     tokenProgram: TOKEN_PROGRAM_ID,
-        //     systemProgram: SystemProgram.programId
-        //   })
-        //   .remainingAccounts([
-        //     { pubkey: submitter1_another_token_account.address, isSigner: false, isWritable: true},
-        //     { pubkey: submitter2_wsol_account.address, isSigner: false, isWritable: true},
-        //     { pubkey: submitter3_wsol_account.address, isSigner: false, isWritable: true},
-        //     { pubkey: submitter4_wsol_account.address, isSigner: false, isWritable: true},
-        //     { pubkey: submitter5_wsol_account.address, isSigner: false, isWritable: true},
-        //   ])
-        //   .signers([creator]).instruction();
-    
-        //   const transaction = new Transaction()
-        //     // .add(modifyComputeUnits)
-        //     // .add(addPriorityFee)
-        //     .add(approve_request_multiple_ix);
-        //   await provider.sendAndConfirm(transaction, [creator])
-    
-        // }catch(err)
-        // {
-        //   console.log("err = ", err);
-        //   assert.equal((err as AnchorError).error.errorMessage, "This mint is not valid")
-        // }
+
     
         let submitter1_before_token_balance = await provider.connection.getTokenAccountBalance(submitter1_wsol_account.address);
         let submitter2_before_token_balance = await provider.connection.getTokenAccountBalance(submitter2_wsol_account.address);
@@ -1016,8 +872,6 @@ describe("approve Request tests", () => {
             submitter2_after_token_balance.value.amount
           )
         );
-console.log("before ", submitter3_before_token_balance.value.uiAmount);
-console.log("after ", submitter3_after_token_balance.value.uiAmount);
 
         assert.equal(
           parseInt(
@@ -1106,7 +960,7 @@ console.log("after ", submitter3_after_token_balance.value.uiAmount);
     
         const ix = await createFeatureFundingAccountInstruction(
           WSOL_ADDRESS,
-          provider.publicKey,
+          funder,
           program
         );
     
@@ -1627,13 +1481,7 @@ console.log("after ", submitter3_after_token_balance.value.uiAmount);
     
           // add pubkey to list of accepted submitters(AddApprovedSubmitters)
           const submitter1 = await createKeypair(provider);
-          // const payout_completer_tokens_account = await getOrCreateAssociatedTokenAccount(
-          //   provider.connection,
-          //   creator,
-          //   lancer_completer_tokens,
-          //   submitter1.publicKey
-          // )
-      
+
           const submitter1_wsol_account = await getOrCreateAssociatedTokenAccount(
             provider.connection,
             submitter1,
@@ -1674,19 +1522,14 @@ console.log("after ", submitter3_after_token_balance.value.uiAmount);
           );
 
           try{
-            let approveRequestIx = await program.methods.approveRequest((1))// TODO remove this
+            let approveRequestIx = await program.methods.approveRequest()// TODO remove this
             .accounts({
               creator: funder,
               submitter: submitter1.publicKey,
-              // lancerCompleterTokens: lancer_completer_tokens,
-              // lancerCompanyTokens: lancer_company_tokens,
               payoutAccount: submitter1_wsol_account.address,
               featureDataAccount: feature_data_account,
               featureTokenAccount: feature_token_account,
-              // creatorCompanyTokensAccount: creator_company_tokens_account.address,
-              // payoutCompleterTokensAccount: payout_completer_tokens_account.address,
               programAuthority: program_authority,
-              // programMintAuthority: program_mint_authority,
               lancerTokenProgramAuthority: lancer_token_program_authority,
               lancerDaoTokenAccount: lancer_dao_token_account,
               tokenProgram: TOKEN_PROGRAM_ID,
@@ -1957,8 +1800,16 @@ console.log("after ", submitter3_after_token_balance.value.uiAmount);
               submitter5.publicKey,
               program
             )
-      
-            await provider.sendAndConfirm(new Transaction().add(submitRequestMultipleIx1).add(submitRequestMultipleIx2), [submitter1, submitter2])
+
+            await provider.sendAndConfirm(
+              new Transaction()
+                .add(submitRequestMultipleIx1)
+                .add(submitRequestMultipleIx2)
+                .add(submitRequestMultipleIx3)
+                .add(submitRequestMultipleIx4)
+                .add(submitRequestMultipleIx5), 
+                [submitter1, submitter2, submitter3, submitter4, submitter5]
+            )
             try {
               await program.methods.approveRequestMultiple()
                 .accounts({

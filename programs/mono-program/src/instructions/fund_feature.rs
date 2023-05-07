@@ -63,24 +63,28 @@ pub struct FundFeature<'info>
 
 pub fn handler(ctx: Context<FundFeature>, amount: u64) -> Result<()>
 {
+    let feature_data_account = &mut ctx.accounts.feature_data_account;
+
+    feature_data_account.amount = feature_data_account.amount
+        .checked_add(amount)
+        .unwrap();
+
     // check that account can pay amount + 5%
-    let lancer_fee = amount
+    let lancer_fee = (amount)
         .checked_mul(FEE as u64)
         .unwrap()
         .checked_div(PERCENT)
         .unwrap();
     let min_token_balance;
     
-    if ctx.accounts.feature_data_account.creator == LANCER_ADMIN {
+    if feature_data_account.creator == LANCER_ADMIN {
         min_token_balance = amount
     } else{
         min_token_balance = amount
-        .checked_add(lancer_fee)
-        .unwrap();
+            .checked_add(lancer_fee)
+            .unwrap();
     }
 
-    let feature_data_account = &mut ctx.accounts.feature_data_account;
-    feature_data_account.amount = amount;
     require!(
         ctx.accounts.creator_token_account.amount >= 
         min_token_balance,

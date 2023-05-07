@@ -38,9 +38,9 @@ pub mod mono_program {
         submit_request::handler(ctx)
     }
 
-    pub fn approve_request(ctx: Context<ApproveRequest>, mint_bump: u8) -> Result<()>
+    pub fn approve_request(ctx: Context<ApproveRequest>, ) -> Result<()>
     {
-        approve_request::handler(ctx, mint_bump)
+        approve_request::handler(ctx, )
     }
 
     pub fn deny_request(ctx: Context<DenyRequest>) -> Result<()>
@@ -68,19 +68,14 @@ pub mod mono_program {
         create_lancer_token_account::handler(ctx)
     }
 
-    // pub fn create_lancer_tokens(ctx: Context<CreateLancerTokens>) -> Result<()>
-    // {
-    //     create_lancer_tokens::handler(ctx)
-    // }
-
     pub fn withdraw_tokens(ctx: Context<WithdrawTokens>, amount: u64, withdraw_bump: u8) -> Result<()> 
     {
         withdraw_tokens::handler(ctx, amount, withdraw_bump)
     }
 
-    pub fn approve_request_third_party(ctx: Context<ApproveRequestThirdParty>, bump: u8) -> Result<()> 
+    pub fn approve_request_third_party(ctx: Context<ApproveRequestThirdParty>,) -> Result<()> 
     {
-        approve_request_third_party::handler(ctx, bump)
+        approve_request_third_party::handler(ctx, )
     }
 
     pub fn enable_multiple_submitters(ctx: Context<EnableMultipleSubmitters>, ) -> Result<()> 

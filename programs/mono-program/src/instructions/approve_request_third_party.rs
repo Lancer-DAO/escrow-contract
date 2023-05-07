@@ -3,9 +3,9 @@
 use std::ops::{Mul, Div, Sub};
 
 use anchor_lang::prelude::*;
-use anchor_spl::{token::{TokenAccount, Token, self, Transfer, CloseAccount, MintTo, Mint}};
+use anchor_spl::{token::{TokenAccount, Token, self, Transfer, CloseAccount}};
 
-use crate::{constants::{MONO_DATA, PERCENT, LANCER_DAO, COMPLETER_FEE, LANCER_ADMIN, MINT_DECIMALS, LANCER_COMPLETER_TOKENS, LANCER_COMPANY_TOKENS, MINT_AUTHORITY, THIRD_PARTY_FEE, LANCER_FEE}, state::FeatureDataAccount, errors::MonoError};
+use crate::{constants::{MONO_DATA, PERCENT, LANCER_DAO, LANCER_ADMIN, THIRD_PARTY_FEE, LANCER_FEE}, state::FeatureDataAccount, errors::MonoError};
 
 #[derive(Accounts)]
 pub struct ApproveRequestThirdParty<'info>
@@ -134,7 +134,7 @@ impl<'info> ApproveRequestThirdParty<'info> {
 
 }
 
-pub fn handler(ctx: Context<ApproveRequestThirdParty>, bump: u8) -> Result<()>
+pub fn handler(ctx: Context<ApproveRequestThirdParty>, ) -> Result<()>
 {
 
     let transfer_seeds = &[

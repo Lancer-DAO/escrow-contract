@@ -5,28 +5,13 @@ use std::{ops::{Add, Mul, Div}};
 use anchor_lang::prelude::*;
 use anchor_spl::{token::{TokenAccount, Token, self, Transfer, CloseAccount, spl_token}};
 
-use crate::{constants::{MONO_DATA, PERCENT, LANCER_DAO, COMPLETER_FEE, LANCER_ADMIN, LANCER_FEE, }, state::FeatureDataAccount, errors::MonoError};
+use crate::{constants::{MONO_DATA, PERCENT, LANCER_DAO, LANCER_ADMIN, LANCER_FEE, }, state::FeatureDataAccount, errors::MonoError};
 
 #[derive(Accounts)]
 pub struct ApproveRequestMultiple<'info>
 {
     #[account(mut)]
     pub creator: Signer<'info>,
-
-    // #[account(
-    //     mut,
-    //     token::mint = feature_data_account.funds_mint,
-    //     // token::authority = submitter,
-    // )]
-    // pub submitter1_account: Box<Account<'info, TokenAccount>>,
-
-    // #[account(
-    //     mut,
-    //     token::mint = lancer_company_tokens,
-    //     // token::authority = feature_data_account.creator,
-    // )]
-    // pub creator_company_tokens_account: Box<Account<'info, TokenAccount>>,
-
 
     #[account(
         mut, 
@@ -88,42 +73,8 @@ pub struct ApproveRequestMultiple<'info>
     )]
     pub program_authority: UncheckedAccount<'info>,
 
-    // #[account(
-    //     mut,
-    //     seeds = [
-    //         LANCER_ADMIN.as_ref(),
-    //         LANCER_COMPLETER_TOKENS.as_bytes()
-    //     ],
-    //     bump,
-    //     mint::decimals = MINT_DECIMALS,
-    //     mint::authority = program_mint_authority,
-    // )]
-    // pub lancer_completer_tokens: Account<'info, Mint>,
-
-    // #[account(
-    //     mut,
-    //     seeds = [
-    //         LANCER_ADMIN.as_ref(),
-    //         LANCER_COMPANY_TOKENS.as_bytes()
-    //     ],
-    //     bump,
-    //     mint::decimals = MINT_DECIMALS,
-    //     mint::authority = program_mint_authority,
-    // )]
-    // pub lancer_company_tokens: Account<'info, Mint>,
-
-    ///CHECK: mint authority
-    // #[account(
-    //     seeds = [
-    //         MINT_AUTHORITY.as_bytes()
-    //     ],
-    //     bump,
-    // )]
-    // pub program_mint_authority: UncheckedAccount<'info>,
-
-
     pub token_program: Program<'info, Token>,
-pub system_program: Program<'info, System>,
+    pub system_program: Program<'info, System>,
 }
 
 impl<'info> ApproveRequestMultiple<'info> {
@@ -190,9 +141,7 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultiple<'in
     if feature_data_account.creator.key() != LANCER_ADMIN
     {
         let lancer_fee = (bounty_amount as f64)
-        // .mul(current_share as f64)
         .mul(LANCER_FEE as f64)
-        // .div(PERCENT as f64)
         .div(PERCENT as f64) as u64;
 
         token::transfer(
@@ -235,8 +184,6 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultiple<'in
 
         let current_submitter_fee = (bounty_amount as f64)
             .mul(current_share as f64)
-            // .mul(COMPLETER_FEE as f64)
-            // .div(PERCENT as f64)
             .div(PERCENT as f64) as u64;
 
         token::transfer(
@@ -245,8 +192,6 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultiple<'in
         )?;
         ctx.accounts.feature_token_account.reload()?;
     }
-
-    // let lancer_fee = 
 
     // Close token account owned by program that stored funds
     token::close_account(

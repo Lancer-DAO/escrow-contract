@@ -29,6 +29,16 @@ pub fn handler(ctx: Context<AddApprovedSubmitters>, ) -> Result<()>
 {
     let feature_data_account = &mut ctx.accounts.feature_data_account;
 
+    // prevent repetition
+    for submitter in feature_data_account.approved_submitters.iter()
+    {
+        require_keys_neq!(
+            *submitter, 
+            ctx.accounts.submitter.key(),
+            MonoError::SubmitterAlreadyPresent
+        );
+    }
+
     let submitter_index: usize = feature_data_account.no_of_submitters as usize;
     require!(submitter_index < MAX_NO_OF_SUBMITTERS, MonoError::MaxApprovedSubmitters);
     feature_data_account.approved_submitters[submitter_index] = ctx.accounts.submitter.key();

@@ -3,9 +3,9 @@
 use std::ops::{Mul, Div};
 
 use anchor_lang::prelude::*;
-use anchor_spl::{token::{TokenAccount, Token, self, Transfer, CloseAccount, MintTo, Mint}};
+use anchor_spl::{token::{TokenAccount, Token, self, Transfer, CloseAccount}};
 
-use crate::{constants::{MONO_DATA, PERCENT, LANCER_DAO, COMPLETER_FEE, LANCER_ADMIN, MINT_DECIMALS, LANCER_COMPLETER_TOKENS, LANCER_COMPANY_TOKENS, MINT_AUTHORITY, LANCER_FEE}, state::FeatureDataAccount, errors::MonoError};
+use crate::{constants::{MONO_DATA, PERCENT, LANCER_DAO, LANCER_ADMIN, LANCER_FEE}, state::FeatureDataAccount, errors::MonoError};
 
 #[derive(Accounts)]
 pub struct ApproveRequest<'info>
@@ -22,21 +22,6 @@ pub struct ApproveRequest<'info>
         token::authority = submitter,
     )]
     pub payout_account: Box<Account<'info, TokenAccount>>,
-
-    // #[account(
-    //     mut,
-    //     token::mint = lancer_completer_tokens,
-    //     token::authority = submitter,
-    // )]
-    // pub payout_completer_tokens_account: Box<Account<'info, TokenAccount>>,
-
-    // #[account(
-    //     mut,
-    //     token::mint = lancer_company_tokens,
-    //     // token::authority = feature_data_account.creator,
-    // )]
-    // pub creator_company_tokens_account: Box<Account<'info, TokenAccount>>,
-
 
     #[account(
         mut, 
@@ -136,7 +121,7 @@ impl<'info> ApproveRequest<'info> {
 
 }
 
-pub fn handler(ctx: Context<ApproveRequest>, mint_bump: u8) -> Result<()>
+pub fn handler(ctx: Context<ApproveRequest>, ) -> Result<()>
 {
     let feature_data_account = &ctx.accounts.feature_data_account;
     //TODO - test for this

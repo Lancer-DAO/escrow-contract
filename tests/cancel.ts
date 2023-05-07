@@ -7,7 +7,7 @@ import { COMPLETER_FEE, LANCER_FEE, LANCER_FEE_THIRD_PARTY, MINT_DECIMALS, MONO_
 import { ComputeBudgetInstruction, ComputeBudgetProgram, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction } from "@solana/web3.js";
 import { add_more_token, createKeypair } from "./utils";
 import { findFeatureAccount, findFeatureTokenAccount, findLancerCompanyTokens, findLancerCompleterTokens, findLancerProgramAuthority, findLancerTokenAccount, findProgramAuthority, findProgramMintAuthority } from "../sdk/pda";
-import { addApprovedSubmittersInstruction, approveRequestInstruction, approveRequestMultipleTransaction, approveRequestThirdPartyInstruction, cancelFeatureInstruction, createFeatureFundingAccountInstruction, createLancerTokenAccountInstruction, createLancerTokensInstruction, denyRequestInstruction, enableMultipleSubmittersInstruction, fundFeatureInstruction, removeApprovedSubmittersInstruction, setShareMultipleSubmittersInstruction, submitRequestInstruction, submitRequestMultipleInstruction, voteToCancelInstruction, withdrawTokensInstruction } from "../sdk/instructions";
+import { addApprovedSubmittersInstruction, approveRequestInstruction, approveRequestMultipleTransaction, approveRequestThirdPartyInstruction, cancelFeatureInstruction, createFeatureFundingAccountInstruction, createLancerTokenAccountInstruction, denyRequestInstruction, enableMultipleSubmittersInstruction, fundFeatureInstruction, removeApprovedSubmittersInstruction, setShareMultipleSubmittersInstruction, submitRequestInstruction, submitRequestMultipleInstruction, voteToCancelInstruction, withdrawTokensInstruction } from "../sdk/instructions";
 import { assert } from "chai";
 import { min } from "bn.js";
 
@@ -139,222 +139,222 @@ describe("cancel feature tests", () => {
     })
 
     it ("test cancelFeature", async () => {
-            // Add your test here.
-            let creator = await createKeypair(provider);
-            const submitter = await createKeypair(provider);
-            const creator_wsol_account = await getOrCreateAssociatedTokenAccount(
-                provider.connection,
-                creator,
-                WSOL_ADDRESS,
-                creator.publicKey
-            );
-            const submitter_wsol_account = await getOrCreateAssociatedTokenAccount(
+        // Add your test here.
+        let creator = await createKeypair(provider);
+        const submitter = await createKeypair(provider);
+        const creator_wsol_account = await getOrCreateAssociatedTokenAccount(
             provider.connection,
-            submitter,
+            creator,
             WSOL_ADDRESS,
-            submitter.publicKey
-            );
-            let amount = 1 * LAMPORTS_PER_SOL;
-            await add_more_token(provider, creator_wsol_account.address, WSOL_AMOUNT);
+            creator.publicKey
+        );
+        const submitter_wsol_account = await getOrCreateAssociatedTokenAccount(
+          provider.connection,
+          submitter,
+          WSOL_ADDRESS,
+          submitter.publicKey
+        );
+        let amount = 1 * LAMPORTS_PER_SOL;
+        await add_more_token(provider, creator_wsol_account.address, WSOL_AMOUNT);
 
-            const ix = await createFeatureFundingAccountInstruction(
-            WSOL_ADDRESS,
-            creator.publicKey,
-            program
-            );
-        
-            const [program_authority] = await findProgramAuthority(program);
-        
-            let tx = await provider.sendAndConfirm(new Transaction().add(ix), [creator]);
-            const accounts = await provider.connection.getParsedProgramAccounts(
-            program.programId, 
-            {
-                filters: [
-                {
-                    dataSize: 381, // number of bytes
-                },
-                {
-                    memcmp: {
-                    offset: 8, // number of bytes
-                    bytes: creator.publicKey.toBase58(), // base58 encoded string
-                    },
-                },
-                ],      
-            }
-            );
-
-            let acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
-            
-            const [feature_data_account] = await findFeatureAccount(
-            acc.unixTimestamp,
-            creator.publicKey,
-            program
-            );
-        
-            const [feature_token_account] = await findFeatureTokenAccount(
-            acc.unixTimestamp,
-            creator.publicKey,
-            WSOL_ADDRESS,
-            program
-            );
-            
-            let approveSubmitterIx = await addApprovedSubmittersInstruction(
-            acc.unixTimestamp,
-            creator.publicKey,
-            submitter.publicKey,
-            program
-            )
-            
-            tx = await provider.sendAndConfirm(new Transaction().add(approveSubmitterIx), [creator]); 
-
-            // Should be false already
-            assert.equal(acc.requestSubmitted, false);
-            const submitRequestIx = await submitRequestInstruction(
-                acc.unixTimestamp, 
-                creator.publicKey, 
-                submitter.publicKey,
-                submitter_wsol_account.address,
-                program
-            )
-            let fund_feature_ix = await fundFeatureInstruction(
-            amount,
-            acc.unixTimestamp,
-            creator.publicKey,
-            WSOL_ADDRESS,
-            program
-            );
-
-            tx = await provider.sendAndConfirm(new Transaction().add(fund_feature_ix).add(submitRequestIx), [submitter, creator])
-        
-            // creator votes to cancel feature(VoteToCancel)
-            let voteToCancelIxByCreator = await voteToCancelInstruction(
-            acc.unixTimestamp,
-            creator.publicKey,
-            creator.publicKey,
-            true,
-            program
-            );
-
-
-            try {
-            // testing funder_cancel = true & payout_cancel = false
-            await program.methods.cancelFeature()
-            .accounts({
-                creator: creator.publicKey,
-                creatorTokenAccount: creator_wsol_account.address,
-                featureDataAccount: feature_data_account,
-                featureTokenAccount: feature_token_account,
-                programAuthority: program_authority,
-                tokenProgram: TOKEN_PROGRAM_ID
-            }).signers([creator]).rpc();
-                
-            } catch (error) {
-            assert.equal((error as AnchorError).error.errorMessage, "Cannot Cancel Feature")
-            }
-
-            try {
-            // testing funder_cancel = true & request_submitted = false
-            let denyRequestIx = await denyRequestInstruction(
-                acc.unixTimestamp,
-                creator.publicKey,
-                submitter.publicKey,
-                program
-            );
-            tx = await provider.sendAndConfirm(new Transaction().add(denyRequestIx), [creator])
-            await program.methods.cancelFeature()
-            .accounts({
-                creator: creator.publicKey,
-                creatorTokenAccount: creator_wsol_account.address,
-                featureDataAccount: feature_data_account,
-                featureTokenAccount: feature_token_account,
-                programAuthority: program_authority,
-                tokenProgram: TOKEN_PROGRAM_ID
-            }).signers([creator]).rpc();
-                
-            } catch (error) {
-            assert.equal((error as AnchorError).error.errorMessage, "Cannot Cancel Feature")
-            }
-
-            // creator votes to not cancel feature(voteToCancel)
-            try{
-            let voteToCancelIxBySubmitter = await voteToCancelInstruction(
-                acc.unixTimestamp,
-                creator.publicKey,
-                submitter.publicKey,
-                false,
-                program
-                );
-            let creatorRevotesToCancelIx = await voteToCancelInstruction(
-                acc.unixTimestamp,
-                creator.publicKey,
-                creator.publicKey,
-                false,
-                program
-            );
-
-                tx = await provider.sendAndConfirm(
-                new Transaction().add(voteToCancelIxByCreator).add(voteToCancelIxBySubmitter).add(creatorRevotesToCancelIx), 
-                [creator, submitter]
-                );
+        const ix = await createFeatureFundingAccountInstruction(
+          WSOL_ADDRESS,
+          creator.publicKey,
+          program
+        );
     
-                acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
-                assert.equal(acc.payoutCancel, false);
-                assert.equal(acc.funderCancel, false);
-                assert.equal(acc.requestSubmitted, false)
+        const [program_authority] = await findProgramAuthority(program);
     
-
-                await program.methods.cancelFeature()
-                .accounts({
-                creator: creator.publicKey,
-                creatorTokenAccount: creator_wsol_account.address,
-                featureDataAccount: feature_data_account,
-                featureTokenAccount: feature_token_account,
-                programAuthority: program_authority,
-                tokenProgram: TOKEN_PROGRAM_ID
-                }).signers([creator]).rpc()
-        }catch(err)
+        let tx = await provider.sendAndConfirm(new Transaction().add(ix), [creator]);
+        const accounts = await provider.connection.getParsedProgramAccounts(
+        program.programId, 
         {
-            assert.equal((err as AnchorError).error.errorMessage, "Cannot Cancel Feature")
+            filters: [
+            {
+                dataSize: 381, // number of bytes
+            },
+            {
+                memcmp: {
+                  offset: 8, // number of bytes
+                  bytes: creator.publicKey.toBase58(), // base58 encoded string
+                },
+            },
+            ],      
         }
-            // submitter votes to cancel Feature(VoteToCancel)
-            let voteToCancelIxBySubmitter = await voteToCancelInstruction(
+        );
+
+        let acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+        
+        const [feature_data_account] = await findFeatureAccount(
+          acc.unixTimestamp,
+          creator.publicKey,
+          program
+        );
+    
+        const [feature_token_account] = await findFeatureTokenAccount(
+          acc.unixTimestamp,
+          creator.publicKey,
+          WSOL_ADDRESS,
+          program
+        );
+        
+        let approveSubmitterIx = await addApprovedSubmittersInstruction(
+          acc.unixTimestamp,
+          creator.publicKey,
+          submitter.publicKey,
+          program
+        )
+        
+        tx = await provider.sendAndConfirm(new Transaction().add(approveSubmitterIx), [creator]); 
+
+        // Should be false already
+        assert.equal(acc.requestSubmitted, false);
+        const submitRequestIx = await submitRequestInstruction(
+            acc.unixTimestamp, 
+            creator.publicKey, 
+            submitter.publicKey,
+            submitter_wsol_account.address,
+            program
+        )
+        let fund_feature_ix = await fundFeatureInstruction(
+          amount,
+          acc.unixTimestamp,
+          creator.publicKey,
+          WSOL_ADDRESS,
+          program
+        );
+
+        tx = await provider.sendAndConfirm(new Transaction().add(fund_feature_ix).add(submitRequestIx), [submitter, creator])
+    
+        // creator votes to cancel feature(VoteToCancel)
+        let voteToCancelIxByCreator = await voteToCancelInstruction(
+        acc.unixTimestamp,
+        creator.publicKey,
+        creator.publicKey,
+        true,
+        program
+        );
+
+
+        try {
+        // testing funder_cancel = true & payout_cancel = false
+        await program.methods.cancelFeature()
+        .accounts({
+            creator: creator.publicKey,
+            creatorTokenAccount: creator_wsol_account.address,
+            featureDataAccount: feature_data_account,
+            featureTokenAccount: feature_token_account,
+            programAuthority: program_authority,
+            tokenProgram: TOKEN_PROGRAM_ID
+        }).signers([creator]).rpc();
+            
+        } catch (error) {
+        assert.equal((error as AnchorError).error.errorMessage, "Cannot Cancel Feature")
+        }
+
+        try {
+        // testing funder_cancel = true & request_submitted = false
+        let denyRequestIx = await denyRequestInstruction(
             acc.unixTimestamp,
             creator.publicKey,
             submitter.publicKey,
-            true,
+            program
+        );
+        tx = await provider.sendAndConfirm(new Transaction().add(denyRequestIx), [creator])
+        await program.methods.cancelFeature()
+        .accounts({
+            creator: creator.publicKey,
+            creatorTokenAccount: creator_wsol_account.address,
+            featureDataAccount: feature_data_account,
+            featureTokenAccount: feature_token_account,
+            programAuthority: program_authority,
+            tokenProgram: TOKEN_PROGRAM_ID
+        }).signers([creator]).rpc();
+            
+        } catch (error) {
+        assert.equal((error as AnchorError).error.errorMessage, "Cannot Cancel Feature")
+        }
+
+        // creator votes to not cancel feature(voteToCancel)
+        try{
+        let voteToCancelIxBySubmitter = await voteToCancelInstruction(
+            acc.unixTimestamp,
+            creator.publicKey,
+            submitter.publicKey,
+            false,
             program
             );
+        let creatorRevotesToCancelIx = await voteToCancelInstruction(
+            acc.unixTimestamp,
+            creator.publicKey,
+            creator.publicKey,
+            false,
+            program
+        );
 
             tx = await provider.sendAndConfirm(
-            new Transaction().add(voteToCancelIxByCreator).add(voteToCancelIxBySubmitter), 
+            new Transaction().add(voteToCancelIxByCreator).add(voteToCancelIxBySubmitter).add(creatorRevotesToCancelIx), 
             [creator, submitter]
             );
 
-            const creator_token_account_before_balance = await provider.connection.getTokenAccountBalance(creator_wsol_account.address)
+            acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+            assert.equal(acc.payoutCancel, false);
+            assert.equal(acc.funderCancel, false);
+            assert.equal(acc.requestSubmitted, false)
 
-            let cancelFeatureIx = await cancelFeatureInstruction(
-            acc.unixTimestamp,
-            creator.publicKey,
-            creator_wsol_account.address,
-            WSOL_ADDRESS,
-            program
-            )
 
-            tx = await provider.sendAndConfirm(new Transaction().add(cancelFeatureIx), [creator])
-            console.log("cancel Feature Tx = ", tx);
+            await program.methods.cancelFeature()
+            .accounts({
+            creator: creator.publicKey,
+            creatorTokenAccount: creator_wsol_account.address,
+            featureDataAccount: feature_data_account,
+            featureTokenAccount: feature_token_account,
+            programAuthority: program_authority,
+            tokenProgram: TOKEN_PROGRAM_ID
+            }).signers([creator]).rpc()
+          }catch(err)
+          {
+              assert.equal((err as AnchorError).error.errorMessage, "Cannot Cancel Feature")
+          }
+        // submitter votes to cancel Feature(VoteToCancel)
+        let voteToCancelIxBySubmitter = await voteToCancelInstruction(
+          acc.unixTimestamp,
+          creator.publicKey,
+          submitter.publicKey,
+          true,
+          program
+        );
 
-            const creator_token_account_after_balance = await provider.connection.getTokenAccountBalance(creator_wsol_account.address)
-            assert.equal(
-            creator_token_account_after_balance.value.amount, 
-            (
-                ((LANCER_FEE + COMPLETER_FEE) * amount) + parseInt(creator_token_account_before_balance.value.amount)
-            ).toString()
-            );
-            let closed_token_account = await provider.connection.getBalance(feature_token_account);
-            let closed_data_account = await provider.connection.getBalance(feature_data_account);
+        tx = await provider.sendAndConfirm(
+        new Transaction().add(voteToCancelIxByCreator).add(voteToCancelIxBySubmitter), 
+        [creator, submitter]
+        );
 
-            assert.equal(0, parseInt(closed_data_account.toString()));
-            assert.equal(0, parseInt(closed_token_account.toString()));
+        const creator_token_account_before_balance = await provider.connection.getTokenAccountBalance(creator_wsol_account.address)
+
+        let cancelFeatureIx = await cancelFeatureInstruction(
+        acc.unixTimestamp,
+        creator.publicKey,
+        creator_wsol_account.address,
+        WSOL_ADDRESS,
+        program
+        )
+
+        tx = await provider.sendAndConfirm(new Transaction().add(cancelFeatureIx), [creator])
+        console.log("cancel Feature Tx = ", tx);
+
+        const creator_token_account_after_balance = await provider.connection.getTokenAccountBalance(creator_wsol_account.address)
+        assert.equal(
+        creator_token_account_after_balance.value.amount, 
+        (
+            ((LANCER_FEE + COMPLETER_FEE) * amount) + parseInt(creator_token_account_before_balance.value.amount)
+        ).toString()
+        );
+        let closed_token_account = await provider.connection.getBalance(feature_token_account);
+        let closed_data_account = await provider.connection.getBalance(feature_data_account);
+
+        assert.equal(0, parseInt(closed_data_account.toString()));
+        assert.equal(0, parseInt(closed_token_account.toString()));
 
     })
 
@@ -370,10 +370,10 @@ describe("cancel feature tests", () => {
             creator.publicKey
         );
         const submitter_wsol_account = await getOrCreateAssociatedTokenAccount(
-        provider.connection,
-        submitter,
-        WSOL_ADDRESS,
-        submitter.publicKey
+          provider.connection,
+          submitter,
+          WSOL_ADDRESS,
+          submitter.publicKey
         );
         await add_more_token(provider, creator_wsol_account.address, WSOL_AMOUNT);
 
@@ -406,17 +406,17 @@ describe("cancel feature tests", () => {
         let acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
         
         const [feature_data_account] = await findFeatureAccount(
-        acc.unixTimestamp,
-        creator.publicKey,
-        program
+          acc.unixTimestamp,
+          creator.publicKey,
+          program
         );
 
         
         let approveSubmitterIx = await addApprovedSubmittersInstruction(
-        acc.unixTimestamp,
-        creator.publicKey,
-        submitter.publicKey,
-        program
+          acc.unixTimestamp,
+          creator.publicKey,
+          submitter.publicKey,
+          program
         )
         
         tx = await provider.sendAndConfirm(new Transaction().add(approveSubmitterIx), [creator]); 
