@@ -1,12 +1,12 @@
 [package]
-name = "escrow"
+name = "mono-program"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "escrow"
+name = "mono_program"
 
 [features]
 no-entrypoint = []
@@ -16,7 +16,6 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = { version = '0.24.2' }
-anchor-spl = { version = '0.24.2' }
-spl-token = { version = "^3.1.1", features = ["no-entrypoint"] }
-anyhow = "=1.0.58"
+solana-program = "1.14"
+anchor-lang = "0.27.0"
+anchor-spl = "0.27.0"
