@@ -10,6 +10,7 @@ approve Request tests:
     instruction:
       createFeatureFundingAccount: pass
       fundFeature: pass
+      addApprovedSubmitters: pass
       approveRequest:
         No Request Submitted yet: fail
       submitRequest: pass

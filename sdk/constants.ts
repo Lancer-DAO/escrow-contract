@@ -13,6 +13,7 @@ export const LANCER_COMPLETER_TOKENS = "lancer_completer_tokens";
 export const LANCER_COMPANY_TOKENS = "lancer_company_tokens";
 export const MINT_DECIMALS = 9;
 export const MINT_AUTHORITY= "mint_authority";
+export const REFERRER = "referrer";
 export const LANCER_ADMIN = new PublicKey("admbKYEXAPNHZbzNADk7arzf8ZbDiZ9u4qzNS3XwRXx");
 export const COMPLETER_FEE = 0.95
 export const THIRD_PARTY = 0.01

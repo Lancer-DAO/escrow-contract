@@ -21,52 +21,7 @@ describe("approve Request tests", () => {
         new PublicKey(MONO_DEVNET), 
         provider
     );
-    const WSOL_AMOUNT = 2 * LAMPORTS_PER_SOL;
-
-    it("test createLancerTokenAccount works", async () => {
-        let lancer_admin = await createKeypair(provider);
-        
-        const [lancer_dao_token_account] = await findLancerTokenAccount(
-          WSOL_ADDRESS,
-          program
-        );
-        const [lancer_token_program_authority] = await findLancerProgramAuthority(
-          program
-        );
-      
-        try {
-          await program.methods.createLancerTokenAccount()
-          .accounts({
-            lancerAdmin: lancer_admin.publicKey,
-            fundsMint: WSOL_ADDRESS,
-            lancerDaoTokenAccount: lancer_dao_token_account,
-            programAuthority: lancer_token_program_authority,
-          }).signers([lancer_admin]).rpc()
-    
-        } catch (err) {
-          assert.equal((err as AnchorError).error.errorMessage,"You are not the Admin")
-        }
-      
-        const create_lancer_token_account_ix = await createLancerTokenAccountInstruction(
-          WSOL_ADDRESS,
-          program
-        );
-        await provider.sendAndConfirm(
-          new Transaction().add(create_lancer_token_account_ix), 
-          []
-        );
-    
-        let lancer_token_account_info = await getAccount(
-          provider.connection,
-          lancer_dao_token_account
-        );
-        assert.equal(lancer_token_account_info.mint.toString(), WSOL_ADDRESS.toString())
-        assert.equal(
-          lancer_token_account_info.owner.toString(), 
-          lancer_token_program_authority.toString()
-        )
-      })
-    
+    const WSOL_AMOUNT = 2 * LAMPORTS_PER_SOL; 
 
     it ("test approveRequest",async () => {
         let creator = await createKeypair(provider);
@@ -152,7 +107,7 @@ describe("approve Request tests", () => {
             program
           );
           let [program_authority] = await findProgramAuthority(program);
-      
+
           const [lancer_dao_token_account] = await findLancerTokenAccount(
             WSOL_ADDRESS,
             program
@@ -990,7 +945,7 @@ describe("approve Request tests", () => {
           WSOL_ADDRESS,
           program
         );
-    
+
           const tx2 = await provider.sendAndConfirm(new Transaction().add(fund_feature_ix), []);
     
     
@@ -1011,8 +966,7 @@ describe("approve Request tests", () => {
           );
     
         const [program_authority] = await findProgramAuthority(program);
-    
-        
+
         const [feature_data_account] = await findFeatureAccount(
           acc.unixTimestamp,
           funder,
@@ -1182,13 +1136,12 @@ describe("approve Request tests", () => {
         ); 
         
         acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
-
-    
+  
         let submitter1_before_token_balance = await provider.connection.getTokenAccountBalance(submitter1_wsol_account.address);
         let submitter2_before_token_balance = await provider.connection.getTokenAccountBalance(submitter2_wsol_account.address);
         let submitter3_before_token_balance = await provider.connection.getTokenAccountBalance(submitter3_wsol_account.address);
         let submitter4_before_token_balance = await provider.connection.getTokenAccountBalance(submitter4_wsol_account.address);
-        let submitter5_before_token_balance = await provider.connection.getTokenAccountBalance(submitter4_wsol_account.address);
+        let submitter5_before_token_balance = await provider.connection.getTokenAccountBalance(submitter5_wsol_account.address);
         let lancer_before_token_balance = await provider.connection.getTokenAccountBalance(lancer_dao_token_account);
     
         let transaction = await approveRequestMultipleTransaction(
@@ -1205,8 +1158,7 @@ describe("approve Request tests", () => {
         let submitter4_after_token_balance = await provider.connection.getTokenAccountBalance(submitter4_wsol_account.address);
         let submitter5_after_token_balance = await provider.connection.getTokenAccountBalance(submitter5_wsol_account.address);
         let lancer_after_token_balance = await provider.connection.getTokenAccountBalance(lancer_dao_token_account);
-    
-    
+
         assert.equal(
           parseInt(
             submitter1_before_token_balance.value.amount

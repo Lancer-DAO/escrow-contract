@@ -137,7 +137,7 @@ describe("cancel feature tests", () => {
         assert.equal(acc.requestSubmitted, false);
 
     })
-
+// TODO - Add to tests.yaml
     it ("test cancelFeature", async () => {
         // Add your test here.
         let creator = await createKeypair(provider);
@@ -228,11 +228,11 @@ describe("cancel feature tests", () => {
     
         // creator votes to cancel feature(VoteToCancel)
         let voteToCancelIxByCreator = await voteToCancelInstruction(
-        acc.unixTimestamp,
-        creator.publicKey,
-        creator.publicKey,
-        true,
-        program
+          acc.unixTimestamp,
+          creator.publicKey,
+          creator.publicKey,
+          true,
+          program
         );
 
 
@@ -283,7 +283,7 @@ describe("cancel feature tests", () => {
             submitter.publicKey,
             false,
             program
-            );
+          );
         let creatorRevotesToCancelIx = await voteToCancelInstruction(
             acc.unixTimestamp,
             creator.publicKey,
@@ -332,15 +332,22 @@ describe("cancel feature tests", () => {
 
         const creator_token_account_before_balance = await provider.connection.getTokenAccountBalance(creator_wsol_account.address)
 
+        let vote_to_cancel_ix = await voteToCancelInstruction(
+          acc.unixTimestamp, 
+          creator.publicKey, 
+          creator.publicKey, 
+          true, 
+          program
+        )
         let cancelFeatureIx = await cancelFeatureInstruction(
-        acc.unixTimestamp,
-        creator.publicKey,
-        creator_wsol_account.address,
-        WSOL_ADDRESS,
-        program
+          acc.unixTimestamp,
+          creator.publicKey,
+          creator_wsol_account.address,
+          WSOL_ADDRESS,
+          program
         )
 
-        tx = await provider.sendAndConfirm(new Transaction().add(cancelFeatureIx), [creator])
+        tx = await provider.sendAndConfirm(new Transaction().add(vote_to_cancel_ix).add(cancelFeatureIx), [creator])
         console.log("cancel Feature Tx = ", tx);
 
         const creator_token_account_after_balance = await provider.connection.getTokenAccountBalance(creator_wsol_account.address)

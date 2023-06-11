@@ -4,6 +4,7 @@ use anchor_lang::{prelude::Pubkey, solana_program::pubkey};
 pub const MAX_NO_OF_SUBMITTERS: usize = 5;
 pub const MIN_NO_OF_SUBMITTERS: usize = 1;
 pub const MONO_DATA: &str = "mono";
+pub const REFERRER: &str = "referrer";
 pub const FEE: u64 = 5;
 // pub const COMPLETER_FEE: u64 = 95;//95% out of 110%
 pub const LANCER_FEE: u64 = 10;// 10 % out of 110%

@@ -103,6 +103,27 @@ pub mod mono_program {
         approve_request_multiple_third_party::handler(ctx)
     }
 
+    pub fn approve_request_partial<'info>(ctx: Context<ApproveRequestPartial>, amount: u64) -> Result<()>
+    {
+        approve_request_partial::handler(ctx, amount)
+    }
+
+    // new functions to support update
+    pub fn create_referral_data_account(ctx: Context<CreateReferralDataAccount>) -> Result<()>
+    {
+        create_referral_data_account::handler(ctx)
+    }
+
+    pub fn add_approved_submitters_v1(ctx: Context<AddApprovedSubmittersV1>) -> Result<()>
+    {
+        add_approved_submitters_v1::handler(ctx)
+    }
+
+    pub fn remove_approved_submitters_v1(ctx: Context<RemoveApprovedSubmittersV1>) -> Result<()>
+    {
+        remove_approved_submitters_v1::handler(ctx)
+    }
+ 
 }
 
 

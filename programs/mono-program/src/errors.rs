@@ -50,4 +50,7 @@ pub enum MonoError
 
     #[msg("Token Error")]
     NotOwnedBySplToken,
+
+    #[msg("Cannot withdraw full funds.")]
+    CannotWithdrawPartially,
 }
