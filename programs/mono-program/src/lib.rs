@@ -5,6 +5,7 @@ mod constants;
 mod errors;
 mod state;
 mod instructions;
+mod utils;
 
 use crate::instructions::*;
 
@@ -114,7 +115,7 @@ pub mod mono_program {
         create_referral_data_account::handler(ctx)
     }
 
-    pub fn add_approved_submitters_v1(ctx: Context<AddApprovedSubmittersV1>) -> Result<()>
+    pub fn add_approved_submitters_v1<'info>(ctx: Context<'_, '_, '_, 'info, AddApprovedSubmittersV1<'info>>,) -> Result<()>
     {
         add_approved_submitters_v1::handler(ctx)
     }
@@ -122,6 +123,16 @@ pub mod mono_program {
     pub fn remove_approved_submitters_v1(ctx: Context<RemoveApprovedSubmittersV1>) -> Result<()>
     {
         remove_approved_submitters_v1::handler(ctx)
+    }
+
+    pub fn approve_request_third_party_v1<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestThirdPartyV1<'info>>,) -> Result<()>
+    {
+        approve_request_third_party_v1::handler(ctx, )
+    }
+
+    pub fn approve_request_multiple_third_party_v1<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultipleThirdPartyV1<'info>>) -> Result<()>
+    {
+        approve_request_multiple_third_party_v1::handler(ctx)
     }
  
 }

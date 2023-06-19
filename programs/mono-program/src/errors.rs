@@ -53,4 +53,7 @@ pub enum MonoError
 
     #[msg("Cannot withdraw full funds.")]
     CannotWithdrawPartially,
+
+    #[msg("Invalid referral provided.")]
+    InvalidReferral,
 }
