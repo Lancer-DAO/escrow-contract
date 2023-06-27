@@ -14,7 +14,7 @@ pub struct AddApprovedSubmittersV1<'info>
     pub creator: Signer<'info>,
 
     /// CHECK: Is either default (no referrer) or referrer pda
-    #[account(mut)]
+    #[account()]
     pub referrer: UncheckedAccount<'info>,
 
     #[account()]
