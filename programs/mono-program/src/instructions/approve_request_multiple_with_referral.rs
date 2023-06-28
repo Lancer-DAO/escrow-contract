@@ -1,31 +1,18 @@
-use std::ops::{Mul, Div, Sub};
+use std::{ops::{Add, Mul, Div, Sub}};
 
 use anchor_lang::prelude::*;
-use anchor_spl::{token::{TokenAccount, Token, self, Transfer, CloseAccount}};
+use anchor_spl::{token::{TokenAccount, Token, self, Transfer, CloseAccount, spl_token}};
 
-use crate::{constants::{REFERRER, MONO_DATA, PERCENT, LANCER_DAO, LANCER_ADMIN, THIRD_PARTY_FEE, LANCER_FEE}, state::FeatureDataAccount, errors::MonoError};
+use crate::{constants::{MONO_DATA, REFERRER, PERCENT, LANCER_DAO, LANCER_ADMIN, LANCER_FEE, }, state::FeatureDataAccount, errors::MonoError};
 use crate::constants::REFERRAL_FEE;
 use crate::state::ReferralDataAccount;
-use crate::utils::{transfer_reward_to_referrers};
+use crate::utils::transfer_reward_to_referrers;
 
 #[derive(Accounts)]
-pub struct ApproveRequestThirdPartyV1<'info>
+pub struct ApproveRequestMultipleWithRefferal<'info>
 {
     #[account(mut)]
     pub creator: Signer<'info>,
-
-    #[account(mut)]
-    pub third_party: Account<'info, TokenAccount>,
-
-    #[account(mut)]
-    pub submitter: SystemAccount<'info>,
-
-    #[account(
-    mut,
-    token::mint = feature_data_account.funds_mint,
-    token::authority = submitter,
-    )]
-    pub payout_account: Box<Account<'info, TokenAccount>>,
 
     #[account(
     mut,
@@ -88,6 +75,7 @@ pub struct ApproveRequestThirdPartyV1<'info>
     pub program_authority: UncheckedAccount<'info>,
 
     pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
 
     #[account(
     seeds = [
@@ -97,23 +85,24 @@ pub struct ApproveRequestThirdPartyV1<'info>
     ],
     bump = referral_data_account.referral_data_account_bump,
     )]
-    pub referral_data_account: Account<'info, ReferralDataAccount>,
+    pub referral_data_account: Box<Account<'info, ReferralDataAccount>>,
 
     /*
     Remaining accounts will be for BuddyLink integration
      */
 }
 
-impl<'info> ApproveRequestThirdPartyV1<'info> {
-    fn transfer_bounty_context(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
+impl<'info> ApproveRequestMultipleWithRefferal<'info> {
+    fn transfer_bounty_context(&self, submitter: &AccountInfo<'info>) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
         CpiContext::new(
             self.token_program.to_account_info().clone(),
             Transfer {
                 from: self.feature_token_account.to_account_info(),
-                to: self.payout_account.to_account_info(),
+                to: submitter.to_account_info(),
                 authority: self.program_authority.to_account_info(),
             })
     }
+
 
     fn transfer_bounty_fee_context(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
         CpiContext::new(
@@ -124,17 +113,6 @@ impl<'info> ApproveRequestThirdPartyV1<'info> {
                 authority: self.program_authority.to_account_info(),
             })
     }
-
-    fn transfer_bounty_third_party_fee_context(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
-        CpiContext::new(
-            self.token_program.to_account_info().clone(),
-            Transfer {
-                from: self.feature_token_account.to_account_info(),
-                to: self.third_party.to_account_info(),
-                authority: self.program_authority.to_account_info(),
-            })
-    }
-
 
     fn close_context(&self) -> CpiContext<'_, '_, '_, 'info, CloseAccount<'info>> {
         CpiContext::new(
@@ -147,35 +125,46 @@ impl<'info> ApproveRequestThirdPartyV1<'info> {
     }
 }
 
-pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestThirdPartyV1<'info>>) -> Result<()>
+pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultipleWithRefferal<'info>>) -> Result<()>
 {
+    let feature_data_account = &ctx.accounts.feature_data_account;
+    //TODO - test for this
+    require!(feature_data_account.is_multiple_submitters, MonoError::ExpectedMultipleSubmitters);
+
+    let mut max_share: f64 = 0.0;
+    for share in feature_data_account.approved_submitters_shares
+    {
+        max_share = max_share.add(share as f64);
+    }
+
+    // TODO - Test for this
+    require!(max_share == PERCENT as f64, MonoError::ShareMustBe100);
+
     let transfer_seeds = &[
         MONO_DATA.as_bytes(),
-        &[ctx.accounts.feature_data_account.program_authority_bump]
+        &[feature_data_account.program_authority_bump]
     ];
     let transfer_signer = [&transfer_seeds[..]];
-    let bounty_amount = ctx.accounts.feature_data_account.amount;
+
+
+    let mut bounty_amount = feature_data_account.amount;
+
+    let submitters_info_iter = &mut ctx.remaining_accounts.iter();
 
     // pay lancer fee if admin did not create the bounty
-    if ctx.accounts.feature_data_account.creator.key() != LANCER_ADMIN
+    if feature_data_account.creator.key() != LANCER_ADMIN
     {
-        // lancer fee is 10% of total fees(5 from both creator & freelancer)
         let fees = (bounty_amount as f64)
             .mul(LANCER_FEE as f64)
             .div(PERCENT as f64) as u64;
-        // third party fee is 10% of lancer current fees
-        let third_party_fee = fees
-            .mul(THIRD_PARTY_FEE)
-            .div(PERCENT);
 
         // referral fee is 10% of lancer current fees
         let referral_fee = fees
             .mul(REFERRAL_FEE)
             .div(PERCENT);
 
-        let lancer_fee = fees.sub(third_party_fee).sub(referral_fee);
+        let lancer_fee = fees.sub(referral_fee);
 
-        // transfer lancer fee
         token::transfer(
             ctx.accounts.transfer_bounty_fee_context().with_signer(&transfer_signer),
             lancer_fee,
@@ -183,28 +172,27 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestThirdPartyV1
 
         ctx.accounts.feature_token_account.reload()?;
 
-        // transfer third party fee
-        token::transfer(
-            ctx.accounts.transfer_bounty_third_party_fee_context().with_signer(&transfer_signer),
-            third_party_fee,
-        )?;
-
-        ctx.accounts.feature_token_account.reload()?;
-
         //transfer referral fee
-        let referral_key = ctx.accounts.referral_data_account.approved_referrers[0];
+        let referral_keys = &ctx.accounts.referral_data_account.approved_referrers;
 
-        if referral_key != Pubkey::default() && !transfer_reward_to_referrers(
-            &[referral_key],
+        let expected_remaining_accounts_before_buddylink = feature_data_account.approved_submitters.len();
+
+        let shares_in_bps = feature_data_account.approved_submitters_shares
+            .iter()
+            .map(|s| s.mul(100.0) as u16)
+            .collect::<Vec<u16>>();
+
+        if !referral_keys.iter().all(|referral_key| *referral_key == Pubkey::default()) && !transfer_reward_to_referrers(
+            referral_keys,
             &ctx.accounts.feature_token_account.mint,
             referral_fee,
-            vec![10_000],
+            shares_in_bps,
             &ctx.remaining_accounts,
             &ctx.accounts.token_program.to_account_info(),
             &ctx.accounts.feature_token_account.to_account_info(),
             &ctx.accounts.program_authority.to_account_info(),
             &transfer_signer,
-            0,
+            expected_remaining_accounts_before_buddylink,
         ) {
             return Err(error!(MonoError::InvalidReferral));
         }
@@ -212,10 +200,46 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestThirdPartyV1
         ctx.accounts.feature_token_account.reload()?;
     }
 
-    token::transfer(
-        ctx.accounts.transfer_bounty_context().with_signer(&transfer_signer),
-        ctx.accounts.feature_token_account.amount,
-    )?;
+    bounty_amount = ctx.accounts.feature_token_account.amount;
+    // pay the completer(s) 95%
+    for (index, key) in feature_data_account.approved_submitters.iter().enumerate()
+    {
+        if key == &Pubkey::default()
+        {
+            break;
+        }
+
+        let token_account_info = next_account_info(submitters_info_iter)?;
+        let current_share = feature_data_account.approved_submitters_shares[index];
+
+        let current_submitter_token_account = TokenAccount::try_deserialize(&mut &token_account_info.try_borrow_data()?[..])?;
+
+        require_keys_eq!(
+            current_submitter_token_account.mint,
+            feature_data_account.funds_mint,
+            MonoError::InvalidMint
+        );
+        require_keys_eq!(
+            *token_account_info.owner,
+            spl_token::ID,
+            MonoError::NotOwnedBySplToken
+        );
+        require_keys_eq!(
+            current_submitter_token_account.owner,
+            feature_data_account.approved_submitters[index],
+            MonoError::NotApprovedSubmitter
+        );
+
+        let current_submitter_fee = (bounty_amount as f64)
+            .mul(current_share as f64)
+            .div(PERCENT as f64) as u64;
+
+        token::transfer(
+            ctx.accounts.transfer_bounty_context(token_account_info).with_signer(&transfer_signer),
+            current_submitter_fee,
+        )?;
+        ctx.accounts.feature_token_account.reload()?;
+    }
 
     // Close token account owned by program that stored funds
     token::close_account(

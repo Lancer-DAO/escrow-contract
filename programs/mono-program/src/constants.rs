@@ -8,8 +8,6 @@ pub const REFERRER: &str = "referrer";
 pub const FEE: u64 = 5;
 // pub const COMPLETER_FEE: u64 = 95;//95% out of 110%
 pub const LANCER_FEE: u64 = 10;
-// 10 % out of 110%
-pub const THIRD_PARTY_FEE: u64 = 10;
 // 1% out of 110% or 10% out of lancer_fee
 pub const REFERRAL_FEE: u64 = 10;
 // 1% out of 110% or 10% out of lancer_fee

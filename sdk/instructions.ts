@@ -295,11 +295,8 @@ export const approveRequestInstruction = async (
   }).instruction();
 }
 
-export const approveRequestThirdPartyInstruction = async (
+export const approveRequestWithReferralInstruction = async (
   timestamp: string,
-  third_party_token_account: PublicKey,
-  // payout_completer_tokens_account: PublicKey,
-  // creator_company_tokens_account: PublicKey,
   creator: PublicKey,
   submitter: PublicKey,
   submitter_token_account: PublicKey,
@@ -328,8 +325,14 @@ export const approveRequestThirdPartyInstruction = async (
     mint,
     program
   );
+  let [referral_data_account] = await findReferralDataAccount(
+    creator,
+    feature_data_account,
+    program,
+  );
 
-  return await program.methods.approveRequestThirdParty()
+
+  return await program.methods.approveRequestWithReferral()
   .accounts({
     creator: creator,
     submitter: submitter,
@@ -337,7 +340,7 @@ export const approveRequestThirdPartyInstruction = async (
     featureDataAccount: feature_data_account,
     featureTokenAccount: feature_token_account,
     programAuthority: program_authority,
-    thirdParty: third_party_token_account,
+    referralDataAccount: referral_data_account,
     lancerDaoTokenAccount: lancer_dao_token_account,
     tokenProgram: TOKEN_PROGRAM_ID,
   }).instruction();
@@ -588,8 +591,8 @@ export const approveRequestMultipleTransaction = async (
   timestamp: string,
   creator: PublicKey,
   mint: PublicKey,
+  has_referrer: boolean,
   program: Program<MonoProgram>,
-  third_party?: PublicKey,
 ): Promise<Transaction> =>  {
   let modifyComputeUnits = ComputeBudgetProgram.setComputeUnitLimit({
     units: 1400000
@@ -650,9 +653,14 @@ export const approveRequestMultipleTransaction = async (
   }
 
   let approve_request_multiple_ix;
-  if (third_party) {
-    let third_party_token_account = await getAssociatedTokenAddress(mint, third_party);
-    approve_request_multiple_ix = await program.methods.approveRequestMultipleThirdParty()
+  let [referral_data_account] = await findReferralDataAccount(
+    creator,
+    feature_data_account,
+    program,
+  );
+ 
+  if (has_referrer) {
+    approve_request_multiple_ix = await program.methods.approveRequestMultipleWithReferral()
       .accounts({
         creator: creator,
         featureDataAccount: feature_data_account,
@@ -660,7 +668,7 @@ export const approveRequestMultipleTransaction = async (
         lancerDaoTokenAccount: lancer_dao_token_account,
         lancerTokenProgramAuthority: lancer_token_program_authority,
         programAuthority: program_authority,
-        thirdParty: third_party_token_account,
+        referralDataAccount: referral_data_account,
         tokenProgram: TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId
       })

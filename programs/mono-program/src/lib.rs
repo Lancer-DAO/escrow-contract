@@ -74,11 +74,6 @@ pub mod mono_program {
         withdraw_tokens::handler(ctx, amount, withdraw_bump)
     }
 
-    pub fn approve_request_third_party(ctx: Context<ApproveRequestThirdParty>,) -> Result<()> 
-    {
-        approve_request_third_party::handler(ctx, )
-    }
-
     pub fn enable_multiple_submitters(ctx: Context<EnableMultipleSubmitters>, ) -> Result<()> 
     {
         enable_multiple_submitters::handler(ctx)
@@ -97,11 +92,6 @@ pub mod mono_program {
     pub fn approve_request_multiple<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultiple<'info>>, ) -> Result<()> 
     {
         approve_request_multiple::handler(ctx, )
-    }
-
-    pub fn approve_request_multiple_third_party<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultipleThirdParty<'info>>) -> Result<()> 
-    {
-        approve_request_multiple_third_party::handler(ctx)
     }
 
     pub fn approve_request_partial<'info>(ctx: Context<ApproveRequestPartial>, amount: u64) -> Result<()>
@@ -125,16 +115,16 @@ pub mod mono_program {
         remove_approved_submitters_v1::handler(ctx)
     }
 
-    pub fn approve_request_third_party_v1<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestThirdPartyV1<'info>>,) -> Result<()>
+    pub fn approve_request_with_referral<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestWithReferral<'info>>,) -> Result<()>
     {
-        approve_request_third_party_v1::handler(ctx, )
+        approve_request_with_referral::handler(ctx, )
     }
 
-    pub fn approve_request_multiple_third_party_v1<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultipleThirdPartyV1<'info>>) -> Result<()>
+    pub fn approve_request_multiple_with_referral<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultipleWithRefferal<'info>>) -> Result<()>
     {
-        approve_request_multiple_third_party_v1::handler(ctx)
+        approve_request_multiple_with_referral::handler(ctx)
     }
- 
+
 }
 
 
