@@ -121,7 +121,7 @@ pub fn validate_referrer<'info>(
      */
 
     let remaining_account_length = remaining_accounts.len();
-    if remaining_account_length != 6 || remaining_account_length != 8 {
+    if remaining_account_length != 6 && remaining_account_length != 8 {
         return None;
     }
 
