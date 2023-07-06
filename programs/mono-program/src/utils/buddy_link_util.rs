@@ -1,4 +1,4 @@
-use anchor_lang::{Key, ToAccountInfo};
+use anchor_lang::{AnchorSerialize, Key, ToAccountInfo};
 use solana_program::account_info::{AccountInfo};
 use solana_program::hash::hash;
 use solana_program::instruction::{AccountMeta, Instruction};
@@ -82,8 +82,8 @@ pub fn transfer_reward_to_referrers<'info>(
     let mut instruction_data: Vec<u8> = vec![];
 
     instruction_data.extend_from_slice(&hash("global:transfer_reward_unchecked_multiple".as_bytes()).to_bytes()[..8]);
-    instruction_data.extend_from_slice(&total_amount.to_le_bytes());
-    instruction_data.extend_from_slice(&shares_in_bps.iter().map(|bps| bps.to_le_bytes()).flatten().collect::<Vec<u8>>());
+    instruction_data.extend_from_slice(&total_amount.try_to_vec().unwrap());
+    instruction_data.extend_from_slice(&shares_in_bps.try_to_vec().unwrap());
 
     let instruction = Instruction {
         program_id: buddy_link_program.key(),
