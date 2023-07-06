@@ -3,13 +3,13 @@ use std::{ops::{Add, Mul, Div, Sub}};
 use anchor_lang::prelude::*;
 use anchor_spl::{token::{TokenAccount, Token, self, Transfer, CloseAccount, spl_token}};
 
-use crate::{constants::{MONO_DATA, REFERRER, PERCENT, LANCER_DAO, LANCER_ADMIN, LANCER_FEE, }, state::FeatureDataAccount, errors::MonoError};
+use crate::{constants::{MONO_DATA, REFERRER, PERCENT, LANCER_DAO, LANCER_ADMIN, LANCER_FEE}, state::FeatureDataAccount, errors::MonoError};
 use crate::constants::REFERRAL_FEE;
 use crate::state::ReferralDataAccount;
 use crate::utils::transfer_reward_to_referrers;
 
 #[derive(Accounts)]
-pub struct ApproveRequestMultipleWithRefferal<'info>
+pub struct ApproveRequestMultipleWithReferral<'info>
 {
     #[account(mut)]
     pub creator: Signer<'info>,
@@ -92,7 +92,7 @@ pub struct ApproveRequestMultipleWithRefferal<'info>
      */
 }
 
-impl<'info> ApproveRequestMultipleWithRefferal<'info> {
+impl<'info> ApproveRequestMultipleWithReferral<'info> {
     fn transfer_bounty_context(&self, submitter: &AccountInfo<'info>) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
         CpiContext::new(
             self.token_program.to_account_info().clone(),
@@ -125,7 +125,7 @@ impl<'info> ApproveRequestMultipleWithRefferal<'info> {
     }
 }
 
-pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultipleWithRefferal<'info>>) -> Result<()>
+pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultipleWithReferral<'info>>) -> Result<()>
 {
     let feature_data_account = &ctx.accounts.feature_data_account;
     //TODO - test for this
@@ -158,44 +158,46 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultipleWith
             .mul(LANCER_FEE as f64)
             .div(PERCENT as f64) as u64;
 
-        // referral fee is 10% of lancer current fees
-        let referral_fee = fees
-            .mul(REFERRAL_FEE)
-            .div(PERCENT);
+        let mut lancer_fee = fees;
 
-        let lancer_fee = fees.sub(referral_fee);
+        //transfer referral fee
+        let referral_keys = &ctx.accounts.referral_data_account.approved_referrers;
+
+        if !referral_keys.iter().all(|referral_key| *referral_key == Pubkey::default()) {
+            // referral fee is 10% of lancer current fees
+            let referral_fee = fees
+                .mul(REFERRAL_FEE)
+                .div(PERCENT);
+
+            lancer_fee = lancer_fee.sub(referral_fee);
+
+            let expected_remaining_accounts_before_buddylink = feature_data_account.approved_submitters.len();
+
+            let shares_in_bps = feature_data_account.approved_submitters_shares
+                .iter()
+                .map(|s| s.mul(100.0) as u16)
+                .collect::<Vec<u16>>();
+
+            if !transfer_reward_to_referrers(
+                referral_keys,
+                &ctx.accounts.feature_token_account.mint,
+                referral_fee,
+                shares_in_bps,
+                &ctx.remaining_accounts,
+                &ctx.accounts.token_program.to_account_info(),
+                &ctx.accounts.feature_token_account.to_account_info(),
+                &ctx.accounts.program_authority.to_account_info(),
+                &transfer_signer,
+                expected_remaining_accounts_before_buddylink,
+            ) {
+                return Err(error!(MonoError::InvalidReferral));
+            }
+        }
 
         token::transfer(
             ctx.accounts.transfer_bounty_fee_context().with_signer(&transfer_signer),
             lancer_fee,
         )?;
-
-        ctx.accounts.feature_token_account.reload()?;
-
-        //transfer referral fee
-        let referral_keys = &ctx.accounts.referral_data_account.approved_referrers;
-
-        let expected_remaining_accounts_before_buddylink = feature_data_account.approved_submitters.len();
-
-        let shares_in_bps = feature_data_account.approved_submitters_shares
-            .iter()
-            .map(|s| s.mul(100.0) as u16)
-            .collect::<Vec<u16>>();
-
-        if !referral_keys.iter().all(|referral_key| *referral_key == Pubkey::default()) && !transfer_reward_to_referrers(
-            referral_keys,
-            &ctx.accounts.feature_token_account.mint,
-            referral_fee,
-            shares_in_bps,
-            &ctx.remaining_accounts,
-            &ctx.accounts.token_program.to_account_info(),
-            &ctx.accounts.feature_token_account.to_account_info(),
-            &ctx.accounts.program_authority.to_account_info(),
-            &transfer_signer,
-            expected_remaining_accounts_before_buddylink,
-        ) {
-            return Err(error!(MonoError::InvalidReferral));
-        }
 
         ctx.accounts.feature_token_account.reload()?;
     }
