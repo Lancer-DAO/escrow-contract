@@ -151,38 +151,40 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestWithReferral
             .mul(LANCER_FEE as f64)
             .div(PERCENT as f64) as u64;
 
-        // referral fee is 10% of lancer current fees
-        let referral_fee = fees
-            .mul(REFERRAL_FEE)
-            .div(PERCENT);
+        let mut lancer_fee = fees;
 
-        let lancer_fee = fees.sub(referral_fee);
+        //transfer referral fee
+        let referral_key = ctx.accounts.referral_data_account.approved_referrers[0];
+
+        if referral_key != Pubkey::default() {
+            // referral fee is 10% of lancer current fees
+            let referral_fee = fees
+                .mul(REFERRAL_FEE)
+                .div(PERCENT);
+
+            lancer_fee = lancer_fee.sub(referral_fee);
+
+            if !transfer_reward_to_referrers(
+                &[referral_key],
+                &ctx.accounts.feature_token_account.mint,
+                referral_fee,
+                vec![10_000],
+                &ctx.remaining_accounts,
+                &ctx.accounts.token_program.to_account_info(),
+                &ctx.accounts.feature_token_account.to_account_info(),
+                &ctx.accounts.program_authority.to_account_info(),
+                &transfer_signer,
+                0,
+            ) {
+                return Err(error!(MonoError::InvalidReferral));
+            }
+        }
 
         // transfer lancer fee
         token::transfer(
             ctx.accounts.transfer_bounty_fee_context().with_signer(&transfer_signer),
             lancer_fee,
         )?;
-
-        ctx.accounts.feature_token_account.reload()?;
-
-        //transfer referral fee
-        let referral_key = ctx.accounts.referral_data_account.approved_referrers[0];
-
-        if referral_key != Pubkey::default() && !transfer_reward_to_referrers(
-            &[referral_key],
-            &ctx.accounts.feature_token_account.mint,
-            referral_fee,
-            vec![10_000],
-            &ctx.remaining_accounts,
-            &ctx.accounts.token_program.to_account_info(),
-            &ctx.accounts.feature_token_account.to_account_info(),
-            &ctx.accounts.program_authority.to_account_info(),
-            &transfer_signer,
-            0,
-        ) {
-            return Err(error!(MonoError::InvalidReferral));
-        }
 
         ctx.accounts.feature_token_account.reload()?;
     }
