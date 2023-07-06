@@ -76,7 +76,7 @@ pub struct ApproveRequestWithReferral<'info>
     pub lancer_token_program_authority: UncheckedAccount<'info>,
 
     ///CHECK: PDA Authority to move out of PDA
-    #[account(
+    #[account(mut,
     seeds = [
     MONO_DATA.as_bytes(),
     ],
