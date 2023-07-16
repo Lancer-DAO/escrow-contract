@@ -111,6 +111,7 @@ pub fn validate_referrer<'info>(
     Buddy link program
     Buddy profile
     Buddy
+    Buddy treasury (owner of the member)
     Member
     Referrer treasury
     Referrer treasury reward
@@ -121,7 +122,7 @@ pub fn validate_referrer<'info>(
      */
 
     let remaining_account_length = remaining_accounts.len();
-    if remaining_account_length != 6 && remaining_account_length != 8 {
+    if remaining_account_length != 7 && remaining_account_length != 9 {
         return None;
     }
 
@@ -170,9 +171,9 @@ pub fn validate_referrer<'info>(
         &account_infos,
     ).expect("Error validating referrer");
 
-    Some(if remaining_account_length == 5 {
-        remaining_accounts[5].key() //the treasury pda (if no spl, a.k.a. sol)
+    Some(if remaining_account_length == 6 {
+        remaining_accounts[6].key() //the treasury pda (if no spl, a.k.a. sol)
     } else {
-        remaining_accounts[7].key() //the token account
+        remaining_accounts[8].key() //the token account
     })
 }
