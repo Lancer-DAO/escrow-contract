@@ -162,7 +162,7 @@ describe("approve Request tests", () => {
           );
           tx = await provider.sendAndConfirm(new Transaction().add(approveRequestIx), [creator])
           console.log("approve Request tx = ", tx);
-    
+
           const submitter_token_account_after_balance = await provider.connection.getTokenAccountBalance(submitter1_wsol_account.address)
             const lancer_token_account_after_balance = await provider.connection.getTokenAccountBalance(lancer_dao_token_account)
     

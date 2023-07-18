@@ -1,0 +1,136 @@
+Warning: cargo-build-bpf is deprecated. Please, use cargo-build-sbf
+cargo-build-bpf child: /home/chinedum/.local/share/solana/install/active_release/bin/cargo-build-sbf --arch bpf
+
+
+Found a 'test' script in the Anchor.toml. Running it as a test suite!
+
+Running test suite: "/home/chinedum/Blockchain Learning/escrow/escrow-contract/Anchor.toml"
+
+✨ Updated contract's idl to sdk
+yarn run v1.22.19
+$ '/home/chinedum/Blockchain Learning/escrow/escrow-contract/node_modules/.bin/ts-mocha' -p ./tsconfig.json -t 1000000 'tests/**/*.ts'
+
+
+  approve partial tests
+    ✔ test createLancerTokenAccount works (769ms)
+timestamp =  1689660196558
+createFFA(2nd test) transaction signature 4DTZ4Tht6zraMdvoBKTnmgTjTkLddzYkfvkzvv3WWoVMTDxjyTD5mBXYUa1pcegEkuvtM8BwSxXrD1rUD5mq7PVd
+fundFeature transaction signature 3wdjVktdMyRkt8LqDZ6HY5KqM1PC21rBv22EXLJygiobvKsRdit754fWGQ95SdST3kj22mNojseRZ2Luh9BxpvM7
+addApproveSubmitters tx sig  21L2L8kU24WX4UHpWdoWnhipb61R9QvXCZQJxN93PhdWsiNvmQGeJvPL942arvKS2Fk6ToQGmJJNSjPQ8YhgS9wG
+submitRequest tx sig  5wU4Z7oVVHdamoQ4pnnEmQhUa1WF2Ag34W2Wg3KFe34rafBcEp6pN24aWE2Lkoz8SUWxqRKJbusRNBGsqiNaDquo
+approve Request Partial tx =  4F8TVSab5k7kBaffLpxLuXUZ3FrJwPFdMgMZ3aYRJAfzFuLsgy8GXgzq1Pp5w6MJjqRDBW4nFmPdEk3a4BooiSLs
+    ✔ test partial payment works  (4476ms)
+timestamp =  1689660201026
+createFFA(2nd test) transaction signature 2ChMNAeFYtcCVcHhfQNDYTGRPnZqm6svTjjkQt8zH2MJ3NkQ4hQwdawJS6J2F5NncBeNxDRusA9cCmwMEgrxMzRX
+fundFeature transaction signature 41Ym2FAN7dphXvMaGApYZs7wQN233j52mx32TTgyfZE74Qomxt94cDWJexycQi5ESXtHzXVPNWHSKTk62W5HJx2q
+approve Request Partial tx =  34QYots2PJ3UTfXSeraSaxjshs9yb8Csch6RMbrPR1F2ytCPpvR4BvLg3pumhwQPWxSCs5tD4wAgdSkSosukc7cW
+    ✔ test partial payment works when admin creates bounty i.e no fees (single submitter) (4066ms)
+timestamp =  1689660205117
+createFFA(2nd test) transaction signature 2C3PR9knupQBXtu7fojWCoZouTVN4PHbt1b1kyUy8T2VAwWfW2zY48zzUqY6PFtHpHpvt7hjYi2uPbRuf8nyT4Ez
+fundFeature transaction signature GsisjDUJQqJun8DYGr3rcQmdE6Gxbv1R94Z2SpiUp4DNzdV8VfLvScMXoGbALvAHsN2u33TwGPb3egnYN2wQbXU
+addApproveSubmitters tx sig  iaRHbHaVkrMyn1ttyPx4Y9xmDK7X1xqHbMxeQNyySwn1QZ1YfE34gFy3BeMhzwaygqrfYD3keYqxRmx6WxsQubj
+submitRequest tx sig  5AGbqb351ARbBpD81pato3bmNGNpjE8cq4dH85eKMRuCJVLuMa3dFGTX4H731NXvHs3QKVrsNFru3GEH2hzS7vuj
+amount -  2000000000
+approve Request Partial tx =  38indooExcZydmc3xYzFAMeT2EfgLZtw49t7G9JXPCaSDLzABDq57RL1Tcza5ysSLVyiyLkotn6Z7ncqyDuUpNRc
+amount -  1000000000
+approve Request Partial tx(2nd) =  5S82e5g1oWJLR9PZ2hx2uEJ3e8D2wrM2PqeLdRP2W4n9dWJh8tyWA1XJzQBkvQqFTvi9S2QnutAv1Q4eBXHqDcth
+amount -  500000000
+    ✔ test partial payment works multiple times  (4944ms)
+
+  approve Request tests
+timestamp =  1689660210002
+createFFA(2nd test) transaction signature 3jxTkbAWx98KNK2HV78qdzycN3K1QssUzcg5C1WpH5QH754uLgPWJrnQ8axMztjaVdNwGSfETJgTSQdWXVF3ik48
+fundFeature transaction signature 5JtByfmfD4ocikLFrkN9CDXuzMpfbb7qb1j9SRgCnfvqeQhskMcavXQM8FftFtDi1RRCEyzitHF5H8b6ZDr8PzeW
+approve Request tx =  2EstkA4Lqv1MLa6kNwWKwat1GuyFoTJ4z2YWR56jZ1vXWcXzdBwv1WPSmzorrfj4HQxijfYLnjK1PGipkZFeLmUo
+    ✔ test approveRequest (4032ms)
+timestamp =  1689660214069
+createFFA(2nd test) transaction signature 48gdwEgL8DtFS7LFXJx2ptf6QfmNTAtSkgenM686uN3PBV9RRjqASe9pkVutDx1Ahg8vHimJb3NXNfB6BcrGizR
+fundFeature transaction signature 4eeoupDefF1dKiHNSzpZbzftzYXfRTbdFJkw9xDyDwmMW4fQuctY7UwvsFgJpSoRw97AQSodQVzjPtGfcKcwWRXU
+approve Request tx =  JKbgJTy9CF1nY9KMyght1QQUnZ7ZezYwfTtfXcRMMwvr9nz5enCNZBGY2ULrY3FymE4xFvXH35q51xbn82B1uKk
+    ✔ test creator = submitter works perfectly when calling approveRequest (3267ms)
+timestamp =  1689660222635
+    ✔ approve ReQuest for Multiple Submitters (9370ms)
+    ✔ test no lancer fees when admin creates bounty and calls approveRequestMultiple (8133ms)
+createFFA(2nd test) transaction signature sNoA3hTxSqnkiYma6EWhxV2CFAQJcXmWG54XPN6UfP7td32WxoJBoWrepkL6PbkojQSaDfqQYwBdnV4xaNRmimG
+fundFeature transaction signature 3TRaNUz7E2z3oZhunztqT8z3nabewn9C7hgVmUoRsztW22syAJQ94KWKC749gjKnodHdL48qN7j7QekmfNXtUzf4
+approve Request tx =  5sXoTcSfdhLuGaU74ps7XxAzYGJd7echdvLHujiZ4rh6qXJr6upH9AWVYDLuDJTRVAWPgFo3TmPEqtXb6BwueByi
+    ✔ test no lancer fees when admin creates bounty and calls approveRequest(Single Submitter) (4882ms)
+
+  approve submitter tests
+timestamp =  1689660239725
+    ✔ test approveSubmitter (6116ms)
+timestamp =  1689660245831
+createFFA transaction signature 3SJs92umZt2r6UoJPHVmYUsp1Jyf8fYf564CwLQiNZLdFai7VmDK9k97NnDDkSgVK4vX5vxVRzWJJJXoyzu5ZMFD
+    ✔ removed approved submitters (5275ms)
+timestamp =  1689660251124
+    ✔ prevent adding the same submitter Pubkey in the list twice (3283ms)
+
+  cancel feature tests
+timestamp =  1689660255213
+voteToCancel Tx(1) =  3wD8YxpTezb1C4keoRQvvPZSuWvZkXXjuFxCZuWwAyh1YpVWFMLU6DMrfjuDgipiVzxTUy2shWKzHpX7h6fD8Mnh
+voteToCancel Tx(2) =  663nDcF3xSiaJ8NNNchUa8tXnLqSicXVYEAnvRotnkPbBzPooJpwvm18q8jgyGPt3CPfER7Re7ShsEzmnXKC7VnC
+    ✔ test voteToCancel (4068ms)
+timestamp =  1689660259287
+cancel Feature Tx =  4nk7ySQ6X6S3hfDQ2z4nKx4ZCf5CPHofERNY7Sgq6ueLXW9rMw4ug5gpDHZPWnymp8naFCdkHN3PR1GMQGpLN3xx
+    ✔ test cancelFeature (4896ms)
+timestamp =  1689660263382
+voteToCancel Tx(1) =  UEcHAS5k3LxLHWjv1CFhVXWQ3HA5EJDfJqhJVLZe4cnLdFgTrkSkh218ru7VwvGDpAak8brvxaMw7GNENAJu5qC
+    ✔ cancel vote if creator = submitter (2859ms)
+
+  deny Request tests
+timestamp =  1689660266236
+createFFA(2nd test) transaction signature DovnkiqV5oGvMQaDdCXau3NwJLCa7MacR3yJyzBAFmzcRtresmb6JJ6y8a9FTy1oSSX1LrFhYgyKZQQY18b4PeR
+fundFeature transaction signature 5NCxrLkgStGuopS2CCTwMCmARCRt2tWjbpCREkn718AvB8WfMsR7AuMieeaNTam6haXXVt7VaA14wKom3AbmhHZF
+denyRequestTx =  3DrQ6PjA2i8rzQ3XRpX6Fk1w7KPUEtEGYBAkc5B3FymAw26xENWS94pkzhgUEGitsz2RmKJRiSmWxfXAUfTchtdC
+    ✔ test denyRequest (4073ms)
+
+  fund feature tests
+timestamp =  1689660270320
+createFFA(2nd test) transaction signature 2AoAGNt2uWEdkVD8QDw2rxqKsYu6pH3tG1X7ZqhieqFpYkMVQdDTwBRUpHCp8gYxDzugAivXdchiS2Xoj7Dddhj6
+fundFeature transaction signature C6jRmzkjHqGTTFV4f9UHDtHPwfKQJxyVrQsS3kkhk93FKXaHc2M39o2wMk3Hko28ScSbtcLu64UVZbHniQ1DSVe
+    ✔ test fundFeature Works (2455ms)
+createFFA(2nd test) transaction signature 3YMLUunBMyeycydq7nTAjhJfrUrGEVmXcbUpn4xMMDo8FzxdkC48ZjuNnfjeE9TqJbGkyaCEh13TPDemcon6u3hT
+fundFeature transaction signature 923nLdDX3zt8LWrQmwWGbZ2BjeKyQgkf4LWCPiKsmF4TtAd7vKhLboCtrpBUjnhB9EYihFdqNCCnACEET9mfPUh
+cancel Feature Tx =  w2Heoxqytf7ELi2AAWduLJw2gfi6tqyk3hzSQAKiu8cEA3bYxozYcK2Tm8WoZc92NvZoGZJEx3D7waGzh5Qbp8U
+    ✔ if admin = creator, creator does not pay extra 5% upfront (2034ms)
+timestamp =  1689660274792
+createFFA(2nd test) transaction signature 3wDYMrvyTHWaJY7WTmHfDq9jYANEZsZES5g5jvJWstw5VWZTpFEX56yMkgpyFAMoHiGad8xghoeuYvf5ofNRjvNU
+fundFeature transaction signature 292e7RuJJCQyQtWKtBiQkFXjWMaRU5bFSsgKNtdz7ytYrwEQPyogFEVCmUeuehsC4c2cjqK1MhqboBLSGWGFMyXx
+    ✔ test amount gets added on if fundFeature is called twice (2845ms)
+createFFA(2nd test) transaction signature 2rMSooUJZHZFAeNqWtRJB8BHXnNypCVzM6rSLLashaKyUHnxPtJ5FhJPL2RGVDFvLPnoiCJ3hFTeobC9pZhN1E77
+fundFeature transaction signature 28zRX3ATuJxbwHFEzXc3UWB1hfJnndPYcRKEExMuspBgB1Nv5mvj8mfgCt73dcbwXcTZkAZU9NH82YhL3ykTyGWU
+    ✔ (admin = creator)test amount gets added but still no lancer fee if fundFeature is called twice (2848ms)
+
+  integration tests
+timestamp =  1689660280489
+createFFA transaction signature ZaBGgF1DQfCYj6eLyXq5F31tLViXo7QbatKu3LJ7H3rmZkg62KqZVCKH974xPzRy4DDXSzC9ovCvyp1hngrX8aj
+    ✔ test createFFAInstruction works (1661ms)
+timestamp =  1689660282115
+createFFA(2nd test) transaction signature 2VrwXGQspm7QBs2tLNz7HwyrAimJDwRMmXWwhJM1Cv2Fxq7jsDRDQtuwsS1ti9rYPMiCCKHDMprLDS6HDnuqssBm
+    ✔ test toggle on enable multiple submitters (2012ms)
+timestamp =  1689660284158
+createFFA(2nd test) transaction signature 4L6QiAH5yY2jAZkftBYySiXWiNJZqo9mn5zQTtvAv3w5MANrBxmT2q39chqyUGFt9gMMPhcnZ5EgsXrja138iQ6G
+adding 5 approved submitters tx =  2FP1bwtZpAMqf3J6kmGAtTkwC88GmEtnQweqeibUCNWV9PD7Lfg8MLrr7PE5aHkQsHPnkTEUzouXuWGmTBGHqPMG
+    ✔ set shares of multiple submitters (5711ms)
+timestamp =  1689660289857
+createFFA(2nd test) transaction signature 4GyknunUw2vSFVmrVzw4VVMWj9xSTHn2ZxdZYGPrjkexPmqixFSqLCBD3AhC7qqgz62uG68ZYma8noDXHV1EP37W
+fundFeature transaction signature 26tv6hAVtxSLF8P8SY66RdfmY63L2dent2HuRDNba7VZj5o2EGjhMzcnK6YsZvdrQTjpUPyrLBMmVu817VsRyes2
+approve Request tx =  5JMCGpQfbdaXCnQyDCgWyb3XgTxpq85Yzk5zHFXjjQNiLPRA25M5kJsGWiF5NEkzLAtWLTrC45gxzk7LgtAoTGU1
+    ✔ withdraw tokens after depositing  (5684ms)
+
+  submit Request tests
+timestamp =  1689660296378
+    ✔ test submitRequest (3285ms)
+timestamp =  1689660299647
+    ✔ test submitRequest fails when enable multiple submitters is turmed on (3272ms)
+timestamp =  1689660302905
+    ✔ unapproved submitter cannot submit request (2463ms)
+timestamp =  1689660305759
+    ✔ test submit Request Multiple parties (4016ms)
+timestamp =  1689660309826
+    ✔ test submit Request Multiple can be called by creator (4066ms)
+
+
+  29 passing (2m)
+
+Done in 119.61s.

@@ -1517,7 +1517,7 @@ export type MonoProgram = {
         },
         {
           "name": "programAuthority",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false,
           "pda": {
             "seeds": [
@@ -3444,7 +3444,7 @@ export const IDL: MonoProgram = {
         },
         {
           "name": "programAuthority",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false,
           "pda": {
             "seeds": [

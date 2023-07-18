@@ -115,6 +115,7 @@ pub fn handler(ctx:Context<ApproveRequestPartial>, amount: u64 ) -> Result<()>
 {
     // let feature_data_account = &ctx.accounts.feature_data_account;
     require!(ctx.accounts.feature_data_account.amount > amount, MonoError::CannotWithdrawPartially);
+msg!("amount started(token) - {}", ctx.accounts.feature_token_account.amount);
 
     //TODO - test for this
     require!(!&ctx.accounts.feature_data_account.is_multiple_submitters, MonoError::ExpectedSingleSubmitter);
@@ -133,23 +134,29 @@ pub fn handler(ctx:Context<ApproveRequestPartial>, amount: u64 ) -> Result<()>
                         .mul(LANCER_FEE as f64)
                         .div(2 as f64)
                         .div(PERCENT as f64) as u64;
-
         // transfer lancer fee
         token::transfer(
             ctx.accounts.transfer_bounty_fee_context().with_signer(&transfer_signer), 
             lancer_fee
         )?;
         bounty_amount = bounty_amount.sub(lancer_fee);
+msg!("lancer fee = {}", lancer_fee);
+msg!("bounty amount = {}", bounty_amount);
 
         ctx.accounts.feature_token_account.reload()?;
     }
 
     remove_submitter(ctx.accounts.submitter.key, &mut ctx.accounts.feature_data_account)?;
     ctx.accounts.feature_data_account.amount = ctx.accounts.feature_data_account.amount.sub(amount);
+
     // pay the completer remaining funds(0.95%)
     token::transfer(
         ctx.accounts.transfer_bounty_context().with_signer(&transfer_signer), 
         bounty_amount,
-    )
+    )?;
 
+    ctx.accounts.feature_token_account.reload()?;
+    msg!("amount left(data) - {}", ctx.accounts.feature_data_account.amount);
+    msg!("amount left(token) - {}", ctx.accounts.feature_token_account.amount);
+    Ok(())
 }
