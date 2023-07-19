@@ -76,7 +76,7 @@ pub fn handler(ctx: Context<FundFeature>, amount: u64) -> Result<()>
         .checked_div(PERCENT)
         .unwrap();
     let min_token_balance;
-    
+
     if feature_data_account.creator == LANCER_ADMIN {
         min_token_balance = amount
     } else{
