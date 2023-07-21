@@ -1,11 +1,5 @@
 //test_cases.yaml
 approve Request tests:
-  test createLancerTokenAccount works:
-    instruction:
-      createLancerTokenAccount:
-        admin != creator: fail
-        admin = creator: pass
-
   test approveRequest:
     instruction:
       createFeatureFundingAccount: pass
@@ -149,6 +143,39 @@ approve Request tests:
       setShareMultipleSubmitters(5):
         share = 5: pass
       approveRequestMultipleWithReferral: pass
+
+approve partial tests:
+  test createLancerTokenAccount works:
+    instruction:
+      createLancerTokenAccount:
+        admin != creator: fail
+        admin = creator: pass
+
+  test partial payment works:
+    instruction:
+      createFeatureFundingAccount: pass
+      fundFeature: pass
+      addApprovedSubmitters: pass
+      approveRequest:
+        No Request Submitted yet: fail
+      submitRequest: pass
+      approveRequestPartial: 
+        Cannot withdraw full funds.: fail
+      approveRequestPartial: pass
+
+  test partial payment works when admin creates bounty i.e no fees (single submitter):
+    instruction:
+      createFeatureFundingAccount: 
+        admin = creator: pass
+      fundFeature: pass
+      addApprovedSubmitters: pass
+      approveRequest: 
+        No Request Submitted yet: fail
+      submitRequest: pass
+      approveRequestPartial: 
+        Cannot withdraw full funds.: fail
+      approveRequestPartial: pass
+
 
 approve submitter tests:
   test approveSubmitter:

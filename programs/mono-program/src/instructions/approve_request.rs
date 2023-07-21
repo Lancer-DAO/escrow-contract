@@ -1,11 +1,11 @@
 
 
-use std::ops::{Mul, Div};
+use std::ops::{Mul, Div, Sub};
 
 use anchor_lang::prelude::*;
 use anchor_spl::{token::{TokenAccount, Token, self, Transfer, CloseAccount}};
 
-use crate::{constants::{MONO_DATA, PERCENT, LANCER_DAO, LANCER_ADMIN, LANCER_FEE}, state::FeatureDataAccount, errors::MonoError};
+use crate::{constants::{MONO_DATA, PERCENT, LANCER_DAO, LANCER_ADMIN, LANCER_FEE, COMPLETER_FEE}, state::FeatureDataAccount, errors::MonoError};
 
 #[derive(Accounts)]
 pub struct ApproveRequest<'info>
@@ -133,28 +133,56 @@ pub fn handler(ctx: Context<ApproveRequest>, ) -> Result<()>
     ];
     let transfer_signer = [&transfer_seeds[..]];
 
-    let bounty_amount = feature_data_account.amount;
+msg!("amount left(data) - {}", feature_data_account.amount);
+msg!("amount left(token) - {}", ctx.accounts.feature_token_account.amount);
+
+let mut bounty_amount = feature_data_account.amount;
     // pay lancer fee if admin did not create the bounty
     if ctx.accounts.feature_data_account.creator.key() != LANCER_ADMIN
     {
         let lancer_fee = (bounty_amount as f64)
                         .mul(LANCER_FEE as f64)
                         .div(PERCENT as f64) as u64;
-        
+msg!("lancer fee = {}", lancer_fee);
         // transfer lancer fee
         token::transfer(
             ctx.accounts.transfer_bounty_fee_context().with_signer(&transfer_signer), 
         lancer_fee
         )?;
+        bounty_amount = bounty_amount.sub(lancer_fee);
 
         ctx.accounts.feature_token_account.reload()?;
 
-    }
-    // pay the completer 95%
-    token::transfer(
+        let completion_fee = (feature_data_account.amount as f64)
+                                    .mul(COMPLETER_FEE as f64)
+                                    .div(PERCENT as f64) as u64;
+        // pay the completer 95%(if not admin) or pay everything(if admin)
+        token::transfer(
         ctx.accounts.transfer_bounty_context().with_signer(&transfer_signer), 
-        ctx.accounts.feature_token_account.amount
-    )?;
+        completion_fee
+        )?;
+    }else // admin call
+    {
+        // pay everything(if admin)
+        token::transfer(
+        ctx.accounts.transfer_bounty_context().with_signer(&transfer_signer), 
+            feature_data_account.amount
+        )?;
+
+    }
+msg!("remaining funds = {}", ctx.accounts.feature_token_account.amount);
+msg!("bounty amount {}", bounty_amount);    
+
+
+    ctx.accounts.feature_token_account.reload()?;
+
+    if ctx.accounts.feature_token_account.amount != 0 // approveRequestPartial was used so send remaining funds to token acoount
+    {
+        token::transfer(
+            ctx.accounts.transfer_bounty_fee_context().with_signer(&transfer_signer), 
+            ctx.accounts.feature_token_account.amount    
+        )?;
+    }
 
     // Close token account owned by program that stored funds
     token::close_account(
