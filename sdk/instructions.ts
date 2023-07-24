@@ -17,10 +17,12 @@ import {
   
   import {
     ComputeBudgetProgram,
+    Connection,
     Keypair,
     LAMPORTS_PER_SOL,
     PublicKey,
     sendAndConfirmTransaction,
+    Signer,
     Struct,
     SystemProgram,
     SYSVAR_RENT_PUBKEY,
@@ -57,6 +59,47 @@ export const createFeatureFundingAccountInstruction = async(
   return await program.methods.createFeatureFundingAccount(timestamp).
       accounts({
           creator: creator,
+          fundsMint: mint,
+          featureDataAccount: feature_account,
+          featureTokenAccount: feature_token_account,
+          programAuthority: program_authority,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          rent: SYSVAR_RENT_PUBKEY,
+          associatedProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+      })
+      .instruction();
+
+}
+
+export const createCustodialFeatureFundingAccountInstruction = async(
+  mint: PublicKey,
+  custodial_fee_payer: PublicKey,
+  creator: PublicKey,
+  program: Program<MonoProgram>
+): Promise<TransactionInstruction> => {
+  const timestamp = Date.now().toString();
+  console.log("timestamp = ", timestamp);
+  const [feature_account] = await findFeatureAccount(
+      timestamp, 
+      creator, 
+      program
+  );
+  const [feature_token_account] = await findFeatureTokenAccount(
+      timestamp, 
+      creator,
+      mint, 
+      program,
+  );
+  
+  const [program_authority] = await findProgramAuthority(
+      program,
+  );
+
+  return await program.methods.createCustodialFeatureFundingAccount(timestamp).
+      accounts({
+          creator: creator,
+          custodialFeePayer: custodial_fee_payer,
           fundsMint: mint,
           featureDataAccount: feature_account,
           featureTokenAccount: feature_token_account,
@@ -710,5 +753,30 @@ export const approveRequestMultipleTransaction = async (
   .add(approve_request_multiple_ix);
 
   return transaction;
+}
+
+export const custodialTransaction = async (
+  connection: Connection,
+  instruction: TransactionInstruction,
+  // payer: PublicKey,
+  backend_signer: Signer,
+) : Promise<Transaction> => {
+  const tx = new Transaction();
+  const { blockhash } = await connection.getLatestBlockhash();
+  tx.recentBlockhash = blockhash;
+  //@ts-ignore
+  tx.add(instruction);
+  tx.sign(backend_signer);
+  // tx.partialSign(signer);
+  tx.feePayer = backend_signer.publicKey;
+  console.log("fee payer = ", backend_signer.publicKey.toString())
+  // const rawTx = tx.serialize();
+  // const signature = await connection.sendRawTransaction(rawTx);
+  // const serializedTx = tx.serialize({requireAllSignatures: false});
+
+  // return serializedTx;
+  return tx;
+  // const signedTx = await signTransaction(tx)
+  // const txId = await sendTransaction(signedTx, connection,{signers:[]});
 }
 

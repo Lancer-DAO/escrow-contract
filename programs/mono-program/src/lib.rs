@@ -24,6 +24,13 @@ pub mod mono_program {
         create_feature_funding_account::handler(ctx, unix_timestamp)
     }
 
+    pub fn create_custodial_feature_funding_account(
+        ctx: Context<CreateCustodialFeatureFundingAccount>,
+        unix_timestamp: String,
+    ) -> Result<()> {
+        create_custodial_feature_funding_account::handler(ctx, unix_timestamp)
+    }
+
     pub fn fund_feature(ctx: Context<FundFeature>, amount: u64) -> Result<()>
     {
         fund_feature::handler(ctx, amount)
