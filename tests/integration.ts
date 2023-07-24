@@ -34,7 +34,7 @@ describe("integration tests", () => {
     const WSOL_AMOUNT = 2 * LAMPORTS_PER_SOL;
 
 
-    it("test createFFAInstruction works with new feePayer", async () => {
+    it("test createCustodialFFAInstruction works with new feePayer", async () => {
       // Add your test here.
       let creator = provider;
       let feePayer = await createKeypair(provider);
