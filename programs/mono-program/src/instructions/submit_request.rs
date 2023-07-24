@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::{token::{TokenAccount}};
+use anchor_spl::token::TokenAccount;
 
 use crate::{constants::MONO_DATA, state::FeatureDataAccount, errors::MonoError};
 

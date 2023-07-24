@@ -39,3 +39,11 @@ export const add_more_token = async (
     await provider.sendAndConfirm(convert_to_wsol_tx, [] );
 
 }
+
+function wait(ms){
+   var start = new Date().getTime();
+   var end = start;
+   while(end < start + ms) {
+     end = new Date().getTime();
+  }
+}

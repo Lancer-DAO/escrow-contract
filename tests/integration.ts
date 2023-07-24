@@ -4,11 +4,22 @@ import { getAccount, getOrCreateAssociatedTokenAccount, TOKEN_PROGRAM_ID } from 
 import { MonoProgram } from "../sdk/types/mono_program";
 import  MonoProgramJSON  from "../sdk/idl/mono_program.json";
 import { LANCER_FEE, MONO_DEVNET, WSOL_ADDRESS } from "../sdk/constants";
-import { LAMPORTS_PER_SOL, PublicKey, Transaction } from "@solana/web3.js";
+import { LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import { add_more_token, createKeypair } from "./utils";
 import { findFeatureAccount, findLancerProgramAuthority, findLancerTokenAccount, findProgramAuthority } from "../sdk/pda";
-import { addApprovedSubmittersInstruction, approveRequestInstruction, createFeatureFundingAccountInstruction, enableMultipleSubmittersInstruction, fundFeatureInstruction, setShareMultipleSubmittersInstruction, submitRequestInstruction, withdrawTokensInstruction } from "../sdk/instructions";
-import { assert } from "chai";
+import { 
+  addApprovedSubmittersInstruction, 
+  approveRequestInstruction, 
+  createFeatureFundingAccountInstruction, 
+  createCustodialFeatureFundingAccountInstruction,
+  custodialTransaction, 
+  enableMultipleSubmittersInstruction, 
+  fundFeatureInstruction, 
+  setShareMultipleSubmittersInstruction, 
+  submitRequestInstruction, 
+  withdrawTokensInstruction
+} from "../sdk/instructions";
+import { assert, expect } from "chai";
 
 describe("integration tests", () => {
   // Configure the client to use the local cluster.
@@ -22,6 +33,99 @@ describe("integration tests", () => {
     );
     const WSOL_AMOUNT = 2 * LAMPORTS_PER_SOL;
 
+
+    it("test createFFAInstruction works with new feePayer", async () => {
+      // Add your test here.
+      let creator = provider;
+      let feePayer = await createKeypair(provider);
+      const creator_wsol_account = await getOrCreateAssociatedTokenAccount(
+          provider.connection,
+          feePayer,
+          WSOL_ADDRESS,
+          creator.publicKey
+      );
+      let convert_to_wsol_tx = new Transaction().add(
+        // trasnfer SOL
+        SystemProgram.transfer({
+          fromPubkey: provider.publicKey,
+          toPubkey: feePayer.publicKey,
+          lamports: WSOL_AMOUNT,
+        }),
+      );  
+      await provider.sendAndConfirm(convert_to_wsol_tx, [] );
+  
+      await add_more_token(provider, creator_wsol_account.address, WSOL_AMOUNT);
+  
+      const ix = await createCustodialFeatureFundingAccountInstruction(
+        WSOL_ADDRESS,
+        feePayer.publicKey,
+        creator.publicKey,
+        program
+      );
+
+      const creator_before_sol_balance = await provider.connection.getBalance(creator.publicKey);
+      const feePayer_before_sol_balance = await provider.connection.getBalance(feePayer.publicKey);
+
+      const [program_authority] = await findProgramAuthority(program);
+      const fee_payer_signs_tx = await custodialTransaction(
+        provider.connection,
+        ix,
+        feePayer
+      );
+      const tx = await provider.sendAndConfirm(fee_payer_signs_tx, []);
+
+      console.log("createCustodialFFA transaction signature", tx);
+      const accounts = await provider.connection.getParsedProgramAccounts(
+        program.programId, // new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")
+        {
+          filters: [
+            {
+              dataSize: 381, // number of bytes
+            },
+            {
+              memcmp: {
+                offset: 8, // number of bytes
+                bytes: creator.publicKey.toBase58(), // base58 encoded string
+              },
+            },
+          ],      
+        }
+      )
+
+      const creator_after_sol_balance = await provider.connection.getBalance(creator.publicKey);
+      const feePayer_after_sol_balance = await provider.connection.getBalance(feePayer.publicKey);
+
+      expect(
+        parseInt(feePayer_after_sol_balance.toString()) > 
+        parseInt(feePayer_before_sol_balance.toString())
+      )
+      assert.equal(
+        parseInt(creator_after_sol_balance.toString()),
+        parseInt(creator_before_sol_balance.toString())
+      )
+
+      const acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+        // Check creator in FFA corresponds to expected creator
+        assert.equal(creator.publicKey.toString(), acc.creator.toString());
+        assert.equal(acc.isMultipleSubmitters, false);
+  
+        const token_account_in_TokenAccount = await getAccount(provider.connection, acc.fundsTokenAccount);
+        const token_account_in_Account = await provider.connection.getAccountInfo(token_account_in_TokenAccount.address);
+
+        // Check FFA token Account is owned by program Authority Account
+        assert.equal(token_account_in_TokenAccount.owner.toString(), program_authority.toString())
+        // Check token account mint corresponds with saved funds mint
+        assert.equal(token_account_in_TokenAccount.mint.toString(), acc.fundsMint.toString());
+        // Check token account owner is already TOKEN_PROGRAM_ID(already done in getAccount()) 
+        assert.equal(token_account_in_Account.owner.toString(), TOKEN_PROGRAM_ID.toString());
+  
+        //check amount is empty
+        // assert.equal(acc.amount.toNumber, 0);
+        // Checks that program authority Account is owned by program(may fail if program not created on deployment)
+        // const program_authority_in_Account = await provider.connection.getAccountInfo(program_authority);
+        // assert.equal(program_authority_in_Account.owner.toString(), program.programId.toString())
+    });
+  
 
   it("test createFFAInstruction works", async () => {
     // Add your test here.
