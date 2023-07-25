@@ -11,7 +11,9 @@ pub struct CreateCustodialFeatureFundingAccount<'info>
     #[account(mut)]
     pub custodial_fee_payer: Signer<'info>,
 
-    pub creator: Signer<'info>,
+    /// Check: Web3 auth can't allow 2 signers
+    #[account()]
+    pub creator: SystemAccount<'info>,
 
     #[account()]
     pub funds_mint: Account<'info, Mint>,

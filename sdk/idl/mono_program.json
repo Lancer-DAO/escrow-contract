@@ -122,7 +122,10 @@
         {
           "name": "creator",
           "isMut": false,
-          "isSigner": true
+          "isSigner": false,
+          "docs": [
+            "Check: Web3 auth can't allow 2 signers"
+          ]
         },
         {
           "name": "fundsMint",
