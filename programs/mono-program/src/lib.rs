@@ -107,7 +107,7 @@ pub mod mono_program {
     }
 
     // new functions to support update
-    pub fn create_referral_data_account(ctx: Context<CreateReferralDataAccount>) -> Result<()>
+    pub fn create_referral_data_account<'info>(ctx: Context<'_, '_, '_, 'info, CreateReferralDataAccount<'info>>) -> Result<()>
     {
         create_referral_data_account::handler(ctx)
     }

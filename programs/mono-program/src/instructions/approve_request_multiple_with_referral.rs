@@ -194,6 +194,34 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultipleWith
             }
         }
 
+        //transfer creator referral fee
+        if ctx.accounts.referral_data_account.creator_referer == Pubkey::default() {
+            // referral fee is 10% of lancer current fees
+            let referral_fee = fees
+                .mul(REFERRAL_FEE)
+                .div(PERCENT);
+
+            lancer_fee = lancer_fee.sub(referral_fee);
+
+            //To get the last token account
+            let expected_remaining_accounts_before_creator_referrer = ctx.remaining_accounts.len() - 2;
+
+            if !transfer_reward_to_referrers(
+                &[ctx.accounts.referral_data_account.creator_referer],
+                &ctx.accounts.feature_token_account.mint,
+                referral_fee,
+                vec![10_000],
+                &ctx.remaining_accounts,
+                &ctx.accounts.token_program.to_account_info(),
+                &ctx.accounts.feature_token_account.to_account_info(),
+                &ctx.accounts.program_authority.to_account_info(),
+                &transfer_signer,
+                expected_remaining_accounts_before_creator_referrer,
+            ) {
+                return Err(error!(MonoError::InvalidReferral));
+            }
+        }
+
         token::transfer(
             ctx.accounts.transfer_bounty_fee_context().with_signer(&transfer_signer),
             lancer_fee,
