@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 
 use crate::constants::{LANCER_ADMIN};
 use crate::errors::{MonoError};
-use crate::state::{ReferralDataAccount, ReferralDataAccountV2};
+use crate::state::{ReferralDataAccount, ReferralDataAccountOld};
 
 
 #[derive(Accounts)]
@@ -15,13 +15,14 @@ pub struct ResizeReferralAccount<'info> {
 
     #[account(
     mut,
-    realloc = ReferralDataAccountV2::space(),
+    realloc = ReferralDataAccount::space(),
     realloc::payer = lancer_admin,
     realloc::zero = false,
     )]
-    pub referral_data_account: Account<'info, ReferralDataAccount>,
+    pub referral_data_account: Account<'info, ReferralDataAccountOld>,
 }
 
+#[allow(dead_code)]
 pub fn handler(_ctx: Context<ResizeReferralAccount>) -> Result<()>
 {
     Ok(())

@@ -107,7 +107,7 @@ pub mod mono_program {
     }
 
     // new functions to support update
-    pub fn create_referral_data_account(ctx: Context<CreateReferralDataAccount>) -> Result<()>
+    pub fn create_referral_data_account<'info>(ctx: Context<'_, '_, '_, 'info, CreateReferralDataAccount<'info>>) -> Result<()>
     {
         create_referral_data_account::handler(ctx)
     }
@@ -132,15 +132,15 @@ pub mod mono_program {
         approve_request_multiple_with_referral::handler(ctx)
     }
 
-    pub fn resize_referral_account<'info>(ctx: Context<'_, '_, '_, 'info, ResizeReferralAccount<'info>>) -> Result<()>
-    {
-        resize_referral_account::handler(ctx)
-    }
-
-    pub fn add_referrer_member<'info>(ctx: Context<'_, '_, '_, 'info, AddReferrerMember<'info>>, referrer_members: Vec<Pubkey>) -> Result<()>
-    {
-        add_referrer_member::handler(ctx, referrer_members)
-    }
+    // pub fn resize_referral_account<'info>(ctx: Context<'_, '_, '_, 'info, ResizeReferralAccount<'info>>) -> Result<()>
+    // {
+    //     resize_referral_account::handler(ctx)
+    // }
+    //
+    // pub fn add_referrer_member<'info>(ctx: Context<'_, '_, '_, 'info, AddReferrerMember<'info>>, referrer_members: Vec<Pubkey>) -> Result<()>
+    // {
+    //     add_referrer_member::handler(ctx, referrer_members)
+    // }
 }
 
 

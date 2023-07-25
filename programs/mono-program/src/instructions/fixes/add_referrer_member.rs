@@ -13,12 +13,12 @@ pub struct AddReferrerMember<'info> {
     #[account(mut, address = LANCER_ADMIN @ MonoError::InvalidAdmin)]
     pub lancer_admin: Signer<'info>,
 
-    //todo put this to not v2 when migration is done
     #[account(mut)]
     pub referral_data_account: Account<'info, ReferralDataAccount>,
 }
 
-pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, AddReferrerMember<'info>>, referrer_members: Vec<Pubkey>) -> Result<()> {
+#[allow(dead_code)]
+pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, AddReferrerMember<'info>>, _referrer_members: Vec<Pubkey>) -> Result<()> {
     let referral_data_account = &mut ctx.accounts.referral_data_account;
 
     referral_data_account.approved_referrers = [
