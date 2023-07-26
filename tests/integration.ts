@@ -36,7 +36,7 @@ describe("integration tests", () => {
 
     it("test createCustodialFFAInstruction works with new feePayer", async () => {
       // Add your test here.
-      let creator = provider;
+      let creator = await createKeypair(provider);
       let feePayer = await createKeypair(provider);
       const creator_wsol_account = await getOrCreateAssociatedTokenAccount(
           provider.connection,
@@ -67,12 +67,21 @@ describe("integration tests", () => {
       const feePayer_before_sol_balance = await provider.connection.getBalance(feePayer.publicKey);
 
       const [program_authority] = await findProgramAuthority(program);
-      const fee_payer_signs_tx = await custodialTransaction(
-        provider.connection,
-        ix,
-        feePayer
+      // const fee_payer_signs_tx = await custodialTransaction(
+      //   provider.connection,
+      //   ix,
+      //   feePayer
+      // );
+      const fee_payer_signs_ix = await createCustodialFeatureFundingAccountInstruction(
+        WSOL_ADDRESS,
+        feePayer.publicKey,
+        creator.publicKey,
+        program
       );
-      const tx = await provider.sendAndConfirm(fee_payer_signs_tx, []);
+
+      // const fee_payer_signs_tx = new Transaction().add(fee_payer_signs_ix);
+      // fee_payer_signs_tx.feePayer = feePayer.publicKey;
+      const tx = await provider.sendAndConfirm(new Transaction().add(fee_payer_signs_ix), [feePayer]);
 
       console.log("createCustodialFFA transaction signature", tx);
       const accounts = await provider.connection.getParsedProgramAccounts(
