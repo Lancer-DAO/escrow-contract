@@ -165,7 +165,7 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestWithReferral
             lancer_fee = lancer_fee.sub(referral_fee);
 
             if !transfer_reward_to_referrers(
-                &[referral_key],
+                &[referral_key, ctx.accounts.referral_data_account.approved_referrers[1]],
                 &ctx.accounts.feature_token_account.mint,
                 referral_fee,
                 vec![10_000],
@@ -174,7 +174,8 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestWithReferral
                 &ctx.accounts.feature_token_account.to_account_info(),
                 &ctx.accounts.program_authority.to_account_info(),
                 &transfer_signer,
-                0,
+                2, //First one is bl program, second is mint
+                0, //No payout in remaining accounts
             ) {
                 return Err(error!(MonoError::InvalidReferral));
             }
@@ -190,10 +191,8 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestWithReferral
             lancer_fee = lancer_fee.sub(referral_fee);
 
             //To get the last token account
-            let expected_remaining_accounts_before_creator_referrer = ctx.remaining_accounts.len() - 2;
-
             if !transfer_reward_to_referrers(
-                &[ctx.accounts.referral_data_account.creator_referer],
+                &[ctx.accounts.referral_data_account.creator_referer, ctx.accounts.referral_data_account.creator_member],
                 &ctx.accounts.feature_token_account.mint,
                 referral_fee,
                 vec![10_000],
@@ -202,7 +201,8 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestWithReferral
                 &ctx.accounts.feature_token_account.to_account_info(),
                 &ctx.accounts.program_authority.to_account_info(),
                 &transfer_signer,
-                expected_remaining_accounts_before_creator_referrer,
+                4, //bl, mint, referrer, referrer member
+                0, //No payout in remaining accounts
             ) {
                 return Err(error!(MonoError::InvalidReferral));
             }

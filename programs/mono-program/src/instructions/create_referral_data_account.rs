@@ -52,8 +52,9 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, CreateReferralDataAccount<
     //Skip if default pubkey (means no referrer)
     if ctx.accounts.referrer.key() != Pubkey::default() {
         match validate_referrer(&ctx.accounts.creator, &ctx.accounts.creator, &ctx.remaining_accounts) {
-            Some(parsed_pubkey) => {
-                referral_data_account.creator_referer = parsed_pubkey;
+            Some(parsed_pubkeys) => {
+                referral_data_account.creator_referer = parsed_pubkeys.0;
+                referral_data_account.creator_member = parsed_pubkeys.1;
             }
             _ => return Err(error!(MonoError::InvalidReferral)),
         }

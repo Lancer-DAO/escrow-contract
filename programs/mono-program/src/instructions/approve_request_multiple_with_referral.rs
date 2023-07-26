@@ -171,7 +171,7 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultipleWith
 
             lancer_fee = lancer_fee.sub(referral_fee);
 
-            let expected_remaining_accounts_before_buddylink = feature_data_account.approved_submitters.len();
+            let expected_number_of_payouts_in_remaining = ctx.accounts.feature_data_account.no_of_submitters as usize;
 
             let shares_in_bps = feature_data_account.approved_submitters_shares
                 .iter()
@@ -188,7 +188,8 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultipleWith
                 &ctx.accounts.feature_token_account.to_account_info(),
                 &ctx.accounts.program_authority.to_account_info(),
                 &transfer_signer,
-                expected_remaining_accounts_before_buddylink,
+                expected_number_of_payouts_in_remaining + 2, //for bl and mint
+                expected_number_of_payouts_in_remaining,
             ) {
                 return Err(error!(MonoError::InvalidReferral));
             }
@@ -204,10 +205,10 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultipleWith
             lancer_fee = lancer_fee.sub(referral_fee);
 
             //To get the last token account
-            let expected_remaining_accounts_before_creator_referrer = ctx.remaining_accounts.len() - 2;
+            let starting_index_for_referrer = ctx.remaining_accounts.len() - 2;
 
             if !transfer_reward_to_referrers(
-                &[ctx.accounts.referral_data_account.creator_referer],
+                &[ctx.accounts.referral_data_account.creator_referer, ctx.accounts.referral_data_account.creator_member],
                 &ctx.accounts.feature_token_account.mint,
                 referral_fee,
                 vec![10_000],
@@ -216,7 +217,9 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultipleWith
                 &ctx.accounts.feature_token_account.to_account_info(),
                 &ctx.accounts.program_authority.to_account_info(),
                 &transfer_signer,
-                expected_remaining_accounts_before_creator_referrer,
+                starting_index_for_referrer,
+                //doesn't apply here since not payout related
+                0,
             ) {
                 return Err(error!(MonoError::InvalidReferral));
             }

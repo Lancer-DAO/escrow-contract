@@ -2,6 +2,7 @@ use anchor_lang::{prelude::Pubkey, solana_program::pubkey};
 
 
 pub const MAX_NO_OF_SUBMITTERS: usize = 5;
+pub const MAX_NO_OF_SUBMITTERS_WITH_REFFERAL: usize = 10;
 pub const MIN_NO_OF_SUBMITTERS: usize = 1;
 pub const MONO_DATA: &str = "mono";
 pub const REFERRER: &str = "referrer";
