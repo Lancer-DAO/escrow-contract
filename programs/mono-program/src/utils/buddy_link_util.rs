@@ -84,6 +84,7 @@ pub fn transfer_reward_to_referrers<'info>(
     instruction_data.extend_from_slice(&hash("global:transfer_reward_unchecked_multiple".as_bytes()).to_bytes()[..8]);
     instruction_data.extend_from_slice(&total_amount.try_to_vec().unwrap());
     instruction_data.extend_from_slice(&shares_in_bps.try_to_vec().unwrap());
+    instruction_data.push(false as u8); //use on-chain analytics
 
     let instruction = Instruction {
         program_id: buddy_link_program.key(),
@@ -113,6 +114,7 @@ pub fn validate_referrer<'info>(
     Buddy
     Buddy treasury (owner of the member)
     Member
+    Referrer member
     Referrer treasury
     Referrer treasury reward
 
@@ -122,7 +124,7 @@ pub fn validate_referrer<'info>(
      */
 
     let remaining_account_length = remaining_accounts.len();
-    if remaining_account_length != 7 && remaining_account_length != 9 {
+    if remaining_account_length != 8 && remaining_account_length != 10 {
         return None;
     }
 
@@ -171,9 +173,9 @@ pub fn validate_referrer<'info>(
         &account_infos,
     ).expect("Error validating referrer");
 
-    Some(if remaining_account_length == 6 {
-        remaining_accounts[6].key() //the treasury pda (if no spl, a.k.a. sol)
+    Some(if remaining_account_length == 8 {
+        remaining_accounts[7].key() //the treasury pda (if no spl, a.k.a. sol)
     } else {
-        remaining_accounts[8].key() //the token account
+        remaining_accounts[9].key() //the token account
     })
 }
