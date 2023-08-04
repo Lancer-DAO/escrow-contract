@@ -31,6 +31,8 @@ import {
   } from '@solana/web3.js';
 import { findFeatureAccount, findFeatureTokenAccount, findLancerCompanyTokens, findLancerCompleterTokens, findLancerProgramAuthority, findLancerTokenAccount, findProgramAuthority, findProgramMintAuthority, findReferralDataAccount } from "./pda";
 import { LANCER_ADMIN } from "./constants";
+import { min } from "bn.js";
+import { program } from "@project-serum/anchor/dist/cjs/native/system";
   
 
 export const createFeatureFundingAccountInstruction = async(
@@ -780,3 +782,146 @@ export const custodialTransaction = async (
   // const txId = await sendTransaction(signedTx, connection,{signers:[]});
 }
 
+export const sendInvoiceInstruction = async (
+  timestamp: string,
+  amount: number,
+  creator: PublicKey,
+  new_creator: PublicKey,
+  mint: PublicKey,
+  program: Program<MonoProgram>,
+) : Promise<TransactionInstruction> => {
+
+  const [feature_data_account] = await findFeatureAccount(
+    timestamp,
+    creator,
+    program
+  );
+
+
+  return await program.methods.sendInvoice(new anchor.BN(amount))
+  .accounts({
+      creator: creator,
+      newCreator: new_creator,
+      fundsMint: mint,
+      featureDataAccount: feature_data_account,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
+  }).instruction();
+
+}
+
+export const acceptInvoiceInstruction = async (
+  timestamp: string,
+  new_creator: PublicKey,
+  creator: PublicKey,
+  mint: PublicKey,
+  program: Program<MonoProgram>,
+) : Promise<TransactionInstruction> => {
+
+  const new_creator_token_account = await getAssociatedTokenAddress(mint, new_creator);
+  const [feature_data_account] = await findFeatureAccount(
+    timestamp, 
+    creator, 
+    program
+  );
+  const [feature_token_account] = await findFeatureTokenAccount(
+      timestamp, 
+      creator,
+      mint, 
+      program,
+  );
+
+const [program_authority] = await findProgramAuthority(
+    program,
+);
+
+  const [new_feature_data_account] = await findFeatureAccount(
+    timestamp, 
+    new_creator, 
+    program
+  );
+  const [new_feature_token_account] = await findFeatureTokenAccount(
+      timestamp, 
+      new_creator,
+      mint, 
+      program,
+  );
+
+
+    return await program.methods.acceptInvoice()
+          .accounts({
+              newCreator: new_creator,
+              newCreatorTokenAccount: new_creator_token_account,
+              fundsMint: mint,
+              newFeatureDataAccount: new_feature_data_account,
+              newFeatureTokenAccount: new_feature_token_account,
+              programAuthority: program_authority,
+              creator: creator,
+              featureDataAccount: feature_data_account,
+              featureTokenAccount: feature_token_account,
+              tokenProgram: TOKEN_PROGRAM_ID,
+              rent: SYSVAR_RENT_PUBKEY,
+              associatedProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+              systemProgram: SystemProgram.programId,
+          }).instruction();
+
+}
+
+export const rejectInvoiceInstruction = async (
+  timestamp: string,
+  invoice_acceptor: PublicKey,
+  creator: PublicKey,
+  mint: PublicKey,
+  program: Program<MonoProgram>, 
+) : Promise<TransactionInstruction> => {
+  const [feature_data_account] = await findFeatureAccount(
+    timestamp, 
+    creator, 
+    program
+  );
+
+  return await program.methods.rejectInvoice()
+    .accounts({
+      invoiceAcceptor: invoice_acceptor,
+      creator: creator,
+      fundsMint: mint,
+      featureDataAccount: feature_data_account,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
+    }).instruction();
+}
+
+export const closeInvoiceInstruction = async (
+  timestamp: string,
+  creator: PublicKey,
+  mint: PublicKey,
+  program: Program<MonoProgram>, 
+) : Promise<TransactionInstruction> => {
+  const [feature_data_account] = await findFeatureAccount(
+    timestamp,
+    creator,
+    program
+  );
+  const [feature_token_account] = await findFeatureTokenAccount(
+    timestamp, 
+    creator,
+    mint, 
+    program,
+  );
+
+  const [program_authority] = await findProgramAuthority(
+    program,
+  );
+
+
+  return await program.methods.closeInvoice()
+    .accounts({
+      programAuthority: program_authority,
+      creator: creator,
+      featureDataAccount: feature_data_account,
+      featureTokenAccount: feature_token_account,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      associatedProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
+    }).instruction()
+}

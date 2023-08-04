@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::{token::{Mint, TokenAccount, Token, self}};
+use anchor_spl::token::{Mint, TokenAccount, Token, self};
 
 use crate::{constants::{MONO_DATA, PERCENT, FEE, LANCER_ADMIN}, state::FeatureDataAccount, errors::MonoError};
 
@@ -65,6 +65,25 @@ pub fn handler(ctx: Context<FundFeature>, amount: u64) -> Result<()>
 {
     let feature_data_account = &mut ctx.accounts.feature_data_account;
 
+    fund(
+        feature_data_account, 
+        &ctx.accounts.creator_token_account, 
+        &ctx.accounts.feature_token_account,
+        &ctx.accounts.creator.to_account_info(),
+        &ctx.accounts.token_program.to_account_info(),
+        amount
+    )
+}
+
+pub fn fund<'a>(
+    feature_data_account: &mut FeatureDataAccount,
+    creator_token_account: &Account<'a, TokenAccount>,
+    feature_token_account: &Account<'a, TokenAccount>,
+    creator: &AccountInfo<'a>,
+    token_program: &AccountInfo<'a>,
+    amount: u64,
+) -> Result<()>
+{
     feature_data_account.amount = feature_data_account.amount
         .checked_add(amount)
         .unwrap();
@@ -86,19 +105,20 @@ pub fn handler(ctx: Context<FundFeature>, amount: u64) -> Result<()>
     }
 
     require!(
-        ctx.accounts.creator_token_account.amount >= 
+        creator_token_account.amount >= 
         min_token_balance,
         MonoError::CannotPayFee,
     );
 
     let cpi_accounts = token::Transfer{
-            from: ctx.accounts.creator_token_account.to_account_info(),
-            to: ctx.accounts.feature_token_account.to_account_info(),
-            authority: ctx.accounts.creator.to_account_info(),
+            from: creator_token_account.to_account_info(),
+            to: feature_token_account.to_account_info(),
+            authority: creator.to_account_info(),
     };
 
     token::transfer(
-        CpiContext::new(ctx.accounts.token_program.to_account_info(), cpi_accounts), 
+        CpiContext::new(token_program.to_account_info(), cpi_accounts), 
         min_token_balance
     )
+
 }

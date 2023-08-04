@@ -131,7 +131,24 @@ pub mod mono_program {
     {
         approve_request_multiple_with_referral::handler(ctx)
     }
+
+    pub fn send_invoice(ctx: Context<SendInvoice>, amount: u64) -> Result<()>
+    {
+        send_invoice::handler(ctx, amount)
+    }
+
+    pub fn accept_invoice(ctx: Context<AcceptInvoice>,) -> Result<()>
+    {
+        accept_invoice::handler(ctx)        
+    }
+
+    pub fn reject_invoice(ctx: Context<RejectInvoice>, ) -> Result<()>
+    {
+        reject_invoice::handler(ctx)
+    }
+
+    pub fn close_invoice(ctx: Context<CloseInvoice>,) -> Result<()>
+    {
+        close_invoice::handler(ctx)
+    }
 }
-
-
-
