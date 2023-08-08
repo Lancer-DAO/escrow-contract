@@ -6,3 +6,5 @@ deploy
 **/*.rs.bk
 node_modules
 test-ledger
+.idea
+log.txt

@@ -1,15 +1,14 @@
 import * as anchor from "@project-serum/anchor";
 import { AnchorError, Program } from "@project-serum/anchor";
-import { ASSOCIATED_TOKEN_PROGRAM_ID, createAccount, createInitializeAccount3Instruction, createMint, createSyncNativeInstruction, getAccount, getMint, getOrCreateAssociatedTokenAccount, NATIVE_MINT, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { getOrCreateAssociatedTokenAccount, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { MonoProgram } from "../sdk/types/mono_program";
 import  MonoProgramJSON  from "../sdk/idl/mono_program.json";
-import { COMPLETER_FEE, LANCER_FEE, LANCER_FEE_THIRD_PARTY, MINT_DECIMALS, MONO_DEVNET, THIRD_PARTY, WSOL_ADDRESS } from "../sdk/constants";
-import { ComputeBudgetInstruction, ComputeBudgetProgram, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction } from "@solana/web3.js";
+import { COMPLETER_FEE, LANCER_FEE, MONO_DEVNET, WSOL_ADDRESS } from "../sdk/constants";
+import { LAMPORTS_PER_SOL, PublicKey, Transaction } from "@solana/web3.js";
 import { add_more_token, createKeypair } from "./utils";
-import { findFeatureAccount, findFeatureTokenAccount, findLancerCompanyTokens, findLancerCompleterTokens, findLancerProgramAuthority, findLancerTokenAccount, findProgramAuthority, findProgramMintAuthority } from "../sdk/pda";
-import { addApprovedSubmittersInstruction, approveRequestInstruction, approveRequestMultipleTransaction, approveRequestThirdPartyInstruction, cancelFeatureInstruction, createFeatureFundingAccountInstruction, createLancerTokenAccountInstruction, denyRequestInstruction, enableMultipleSubmittersInstruction, fundFeatureInstruction, removeApprovedSubmittersInstruction, setShareMultipleSubmittersInstruction, submitRequestInstruction, submitRequestMultipleInstruction, voteToCancelInstruction, withdrawTokensInstruction } from "../sdk/instructions";
+import { findFeatureAccount, findFeatureTokenAccount, findProgramAuthority } from "../sdk/pda";
+import { addApprovedSubmittersInstruction, cancelFeatureInstruction, createFeatureFundingAccountInstruction, denyRequestInstruction, fundFeatureInstruction, submitRequestInstruction, voteToCancelInstruction } from "../sdk/instructions";
 import { assert } from "chai";
-import { min } from "bn.js";
 
 describe("cancel feature tests", () => {
     // Configure the client to use the local cluster.
@@ -137,7 +136,7 @@ describe("cancel feature tests", () => {
         assert.equal(acc.requestSubmitted, false);
 
     })
-
+// TODO - Add to tests.yaml
     it ("test cancelFeature", async () => {
         // Add your test here.
         let creator = await createKeypair(provider);
@@ -228,11 +227,11 @@ describe("cancel feature tests", () => {
     
         // creator votes to cancel feature(VoteToCancel)
         let voteToCancelIxByCreator = await voteToCancelInstruction(
-        acc.unixTimestamp,
-        creator.publicKey,
-        creator.publicKey,
-        true,
-        program
+          acc.unixTimestamp,
+          creator.publicKey,
+          creator.publicKey,
+          true,
+          program
         );
 
 
@@ -283,7 +282,7 @@ describe("cancel feature tests", () => {
             submitter.publicKey,
             false,
             program
-            );
+          );
         let creatorRevotesToCancelIx = await voteToCancelInstruction(
             acc.unixTimestamp,
             creator.publicKey,
@@ -332,15 +331,22 @@ describe("cancel feature tests", () => {
 
         const creator_token_account_before_balance = await provider.connection.getTokenAccountBalance(creator_wsol_account.address)
 
+        let vote_to_cancel_ix = await voteToCancelInstruction(
+          acc.unixTimestamp, 
+          creator.publicKey, 
+          creator.publicKey, 
+          true, 
+          program
+        )
         let cancelFeatureIx = await cancelFeatureInstruction(
-        acc.unixTimestamp,
-        creator.publicKey,
-        creator_wsol_account.address,
-        WSOL_ADDRESS,
-        program
+          acc.unixTimestamp,
+          creator.publicKey,
+          creator_wsol_account.address,
+          WSOL_ADDRESS,
+          program
         )
 
-        tx = await provider.sendAndConfirm(new Transaction().add(cancelFeatureIx), [creator])
+        tx = await provider.sendAndConfirm(new Transaction().add(vote_to_cancel_ix).add(cancelFeatureIx), [creator])
         console.log("cancel Feature Tx = ", tx);
 
         const creator_token_account_after_balance = await provider.connection.getTokenAccountBalance(creator_wsol_account.address)

@@ -146,7 +146,7 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultiple<'in
 
         token::transfer(
             ctx.accounts.transfer_bounty_fee_context().with_signer(&transfer_signer), 
-        lancer_fee
+            lancer_fee
         )?;
 
         ctx.accounts.feature_token_account.reload()?;

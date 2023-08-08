@@ -1,15 +1,10 @@
 //test_cases.yaml
 approve Request tests:
-  test createLancerTokenAccount works:
-    instruction:
-      createLancerTokenAccount:
-        admin != creator: fail
-        admin = creator: pass
-
   test approveRequest:
     instruction:
       createFeatureFundingAccount: pass
       fundFeature: pass
+      addApprovedSubmitters: pass
       approveRequest:
         No Request Submitted yet: fail
       submitRequest: pass
@@ -26,7 +21,7 @@ approve Request tests:
       submitRequest: pass
       approveRequest: pass
 
-  test third party fees:
+  test referral fees:
     instruction:
       createFeatureFundingAccount: pass
       fundFeature: pass
@@ -64,7 +59,7 @@ approve Request tests:
       setShareMultipleSubmitters(5):
         share = 5: pass
       approveRequestMultiple: pass
-  
+
   test no lancer fees when admin creates bounty and calls approveRequest(Multiple Submitters):
     instruction:
       createFeatureFundingAccount:
@@ -117,7 +112,7 @@ approve Request tests:
       submitRequest: pass
       approveRequest: pass
 
-  test no third party/lancer fees when admin creates bounty and calls approveReQuest(Multiple Submitters):
+  test referral does not collect fees when admin creates bounty and calls approveRequestWithReferral:
     instruction:
       createFeatureFundingAccount:
         admin = creator: pass
@@ -147,7 +142,40 @@ approve Request tests:
         share = 5: pass
       setShareMultipleSubmitters(5):
         share = 5: pass
-      approveRequestMultiple: pass
+      approveRequestMultipleWithReferral: pass
+
+approve partial tests:
+  test createLancerTokenAccount works:
+    instruction:
+      createLancerTokenAccount:
+        admin != creator: fail
+        admin = creator: pass
+
+  test partial payment works:
+    instruction:
+      createFeatureFundingAccount: pass
+      fundFeature: pass
+      addApprovedSubmitters: pass
+      approveRequest:
+        No Request Submitted yet: fail
+      submitRequest: pass
+      approveRequestPartial: 
+        Cannot withdraw full funds.: fail
+      approveRequestPartial: pass
+
+  test partial payment works when admin creates bounty i.e no fees (single submitter):
+    instruction:
+      createFeatureFundingAccount: 
+        admin = creator: pass
+      fundFeature: pass
+      addApprovedSubmitters: pass
+      approveRequest: 
+        No Request Submitted yet: fail
+      submitRequest: pass
+      approveRequestPartial: 
+        Cannot withdraw full funds.: fail
+      approveRequestPartial: pass
+
 
 approve submitter tests:
   test approveSubmitter:

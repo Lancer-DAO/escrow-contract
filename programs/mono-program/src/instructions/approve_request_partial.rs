@@ -3,18 +3,17 @@
 use std::ops::{Mul, Div, Sub};
 
 use anchor_lang::prelude::*;
-use anchor_spl::{token::{TokenAccount, Token, self, Transfer, CloseAccount}};
+use anchor_spl::{token::{TokenAccount, Token, self, Transfer,}};
+use remove_approved_submitters::remove_submitter;
 
-use crate::{constants::{MONO_DATA, PERCENT, LANCER_DAO, LANCER_ADMIN, THIRD_PARTY_FEE, LANCER_FEE}, state::FeatureDataAccount, errors::MonoError};
+
+use crate::{constants::{MONO_DATA, PERCENT, LANCER_DAO, LANCER_ADMIN, LANCER_FEE}, state::FeatureDataAccount, errors::MonoError, instructions::remove_approved_submitters, };
 
 #[derive(Accounts)]
-pub struct ApproveRequestThirdParty<'info>
+pub struct ApproveRequestPartial<'info>
 {
     #[account(mut)]
     pub creator: Signer<'info>,
-
-    #[account(mut)]
-    pub third_party: Account<'info, TokenAccount>,
 
     #[account(mut)]
     pub submitter: SystemAccount<'info>,
@@ -28,7 +27,6 @@ pub struct ApproveRequestThirdParty<'info>
 
     #[account(
         mut, 
-        close = creator,
         seeds = [
             MONO_DATA.as_bytes(),
             feature_data_account.unix_timestamp.as_ref(),
@@ -90,7 +88,7 @@ pub struct ApproveRequestThirdParty<'info>
 
 }
 
-impl<'info> ApproveRequestThirdParty<'info> {
+impl<'info> ApproveRequestPartial<'info> {
     fn transfer_bounty_context(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
         CpiContext::new(
             self.token_program.to_account_info().clone(),
@@ -111,73 +109,54 @@ impl<'info> ApproveRequestThirdParty<'info> {
         })
     }
 
-    fn transfer_bounty_third_party_fee_context(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
-        CpiContext::new(
-            self.token_program.to_account_info().clone(),
-          Transfer {
-            from: self.feature_token_account.to_account_info(),
-            to: self.third_party.to_account_info(),
-            authority: self.program_authority.to_account_info(),
-        })
-    }
-
-
-    fn close_context(&self) -> CpiContext<'_, '_, '_, 'info, CloseAccount<'info>> {
-        CpiContext::new(
-            self.token_program.to_account_info().clone(),
-          CloseAccount {
-            account: self.feature_token_account.to_account_info(),
-            destination: self.creator.to_account_info(),
-            authority: self.program_authority.to_account_info(),
-        })
-    }
-
 }
 
-pub fn handler(ctx: Context<ApproveRequestThirdParty>, ) -> Result<()>
+pub fn handler(ctx:Context<ApproveRequestPartial>, amount: u64 ) -> Result<()>
 {
+    // let feature_data_account = &ctx.accounts.feature_data_account;
+    require!(ctx.accounts.feature_data_account.amount > amount, MonoError::CannotWithdrawPartially);
+msg!("amount started(token) - {}", ctx.accounts.feature_token_account.amount);
+
+    //TODO - test for this
+    require!(!&ctx.accounts.feature_data_account.is_multiple_submitters, MonoError::ExpectedSingleSubmitter);
 
     let transfer_seeds = &[
         MONO_DATA.as_bytes(),
         &[ctx.accounts.feature_data_account.program_authority_bump]
     ];
     let transfer_signer = [&transfer_seeds[..]];
-    let bounty_amount = ctx.accounts.feature_data_account.amount;
 
+    let mut bounty_amount: u64 = amount;
     // pay lancer fee if admin did not create the bounty
     if ctx.accounts.feature_data_account.creator.key() != LANCER_ADMIN
-    {
-        let fees = (bounty_amount as f64)
+    {// takes 0.05% 
+        let lancer_fee = (bounty_amount as f64)
                         .mul(LANCER_FEE as f64)
+                        .div(2 as f64)
                         .div(PERCENT as f64) as u64;
-        let third_party_fee = fees
-                        .mul(THIRD_PARTY_FEE)
-                        .div(PERCENT);
-        let lancer_fee = fees.sub(third_party_fee);
-
         // transfer lancer fee
         token::transfer(
             ctx.accounts.transfer_bounty_fee_context().with_signer(&transfer_signer), 
-        lancer_fee
+            lancer_fee
         )?;
+        bounty_amount = bounty_amount.sub(lancer_fee);
+msg!("lancer fee = {}", lancer_fee);
+msg!("bounty amount = {}", bounty_amount);
 
-        ctx.accounts.feature_token_account.reload()?;
-
-        // transfer third party fee
-        token::transfer(
-            ctx.accounts.transfer_bounty_third_party_fee_context().with_signer(&transfer_signer), 
-            third_party_fee
-        )?;
-    
         ctx.accounts.feature_token_account.reload()?;
     }
+
+    remove_submitter(ctx.accounts.submitter.key, &mut ctx.accounts.feature_data_account)?;
+    ctx.accounts.feature_data_account.amount = ctx.accounts.feature_data_account.amount.sub(amount);
+
+    // pay the completer remaining funds(0.95%)
     token::transfer(
         ctx.accounts.transfer_bounty_context().with_signer(&transfer_signer), 
-        ctx.accounts.feature_token_account.amount
+        bounty_amount,
     )?;
 
-    // Close token account owned by program that stored funds
-    token::close_account(
-            ctx.accounts.close_context().with_signer(&transfer_signer)
-    )
+    ctx.accounts.feature_token_account.reload()?;
+    msg!("amount left(data) - {}", ctx.accounts.feature_data_account.amount);
+    msg!("amount left(token) - {}", ctx.accounts.feature_token_account.amount);
+    Ok(())
 }

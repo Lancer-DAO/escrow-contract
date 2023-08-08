@@ -50,4 +50,10 @@ pub enum MonoError
 
     #[msg("Token Error")]
     NotOwnedBySplToken,
+
+    #[msg("Cannot withdraw full funds.")]
+    CannotWithdrawPartially,
+
+    #[msg("Invalid referral provided.")]
+    InvalidReferral,
 }
