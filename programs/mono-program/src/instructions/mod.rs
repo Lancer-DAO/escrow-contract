@@ -20,7 +20,9 @@ pub mod approve_request_multiple;
 pub mod approve_request_multiple_with_referral;
 pub mod approve_request_partial;
 pub mod create_referral_data_account;
+pub mod fixes;
 
+pub use fixes::*;
 pub use create_feature_funding_account::*;
 pub use create_custodial_feature_funding_account::*;
 pub use fund_feature::*;
