@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 
 use crate::constants::{LANCER_ADMIN, MAX_NO_OF_SUBMITTERS_WITH_REFERRAL};
 use crate::errors::{MonoError};
-use crate::state::{ReferralDataAccountV2};
+use crate::state::{ReferralDataAccount};
 
 
 #[derive(Accounts)]
@@ -15,7 +15,7 @@ pub struct AddReferrerMember<'info> {
 
     //todo put this to not v2 when migration is done
     #[account(mut)]
-    pub referral_data_account: Account<'info, ReferralDataAccountV2>,
+    pub referral_data_account: Account<'info, ReferralDataAccount>,
 }
 
 pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, AddReferrerMember<'info>>, referrer_members: Vec<Pubkey>) -> Result<()> {
