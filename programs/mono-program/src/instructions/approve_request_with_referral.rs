@@ -191,6 +191,12 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestWithReferral
 
             lancer_fee = lancer_fee.sub(referral_fee);
 
+            let starting_index = if referral_key != Pubkey::default() {
+                2
+            } else {
+                0
+            };
+
             //To get the last token account
             if !transfer_reward_to_referrers(
                 &[ctx.accounts.referral_data_account.creator_referrer, ctx.accounts.referral_data_account.creator_member],
@@ -202,7 +208,7 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestWithReferral
                 &ctx.accounts.feature_token_account.to_account_info(),
                 &ctx.accounts.program_authority.to_account_info(),
                 &transfer_signer,
-                4, //bl, mint, referrer, referrer member
+                2 + starting_index, //bl, mint, referrer, referrer member
                 0, //No payout in remaining accounts
                 false,
             ) {

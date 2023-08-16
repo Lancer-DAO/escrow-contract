@@ -10,7 +10,7 @@ mod utils;
 use crate::instructions::*;
 
 
-declare_id!("Lag4h3EZK51MWC5L4VY7XeXmEmpo9TrAsgEhQXryHix");
+declare_id!("LNCRQTZfeLMFHsSggvVc9kQWb1A98PEqHxVzBraWpQs");
 
 
 #[program]
