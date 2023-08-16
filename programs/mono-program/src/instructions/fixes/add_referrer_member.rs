@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::constants::{LANCER_ADMIN, MAX_NO_OF_SUBMITTERS_WITH_REFERRAL};
+use crate::constants::{LANCER_ADMIN};
 use crate::errors::{MonoError};
 use crate::state::{ReferralDataAccount};
 
@@ -21,27 +21,18 @@ pub struct AddReferrerMember<'info> {
 pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, AddReferrerMember<'info>>, referrer_members: Vec<Pubkey>) -> Result<()> {
     let referral_data_account = &mut ctx.accounts.referral_data_account;
 
-    let mut new_approved_referrers: [Pubkey; MAX_NO_OF_SUBMITTERS_WITH_REFERRAL] = [Pubkey::default(); MAX_NO_OF_SUBMITTERS_WITH_REFERRAL];
-
-    //Set the old approved referrers in the new array
-    for (i, &value) in referral_data_account.approved_referrers.iter().enumerate() {
-        if i < 5 {
-            new_approved_referrers[i * 2] = value;
-        } else {
-            break;
-        }
-    }
-
-    //Set the member referrers
-    for (i, &value) in referrer_members.iter().enumerate() {
-        if i < 5 {
-            new_approved_referrers[(i * 2) + 1] = value;
-        } else {
-            break;
-        }
-    }
-
-    referral_data_account.approved_referrers = new_approved_referrers;
+    referral_data_account.approved_referrers = [
+        Pubkey::default(),
+        Pubkey::default(),
+        Pubkey::default(),
+        Pubkey::default(),
+        Pubkey::default(),
+        Pubkey::default(),
+        Pubkey::default(),
+        Pubkey::default(),
+        Pubkey::default(),
+        Pubkey::default()
+    ];
 
     Ok(())
 }
