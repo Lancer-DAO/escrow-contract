@@ -162,6 +162,7 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultipleWith
 
         //transfer referral fee
         let referral_keys = &ctx.accounts.referral_data_account.approved_referrers;
+        let expected_number_of_payouts_in_remaining = ctx.accounts.feature_data_account.no_of_submitters as usize;
 
         if !referral_keys.iter().all(|referral_key| *referral_key == Pubkey::default()) {
             // referral fee is 10% of lancer current fees
