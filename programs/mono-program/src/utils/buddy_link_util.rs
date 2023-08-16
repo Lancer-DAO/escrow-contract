@@ -53,13 +53,13 @@ pub fn transfer_reward_to_referrers<'info>(
         return false;
     }
 
-    let buddy_link_program = remaining_accounts[starting_index_for_referrer_accounts - 2].to_account_info();
+    let buddy_link_program = remaining_accounts[expected_number_of_payouts_in_remaining].to_account_info();
 
     if buddy_link_program.key() != BUDDY_LINK_PROGRAM_ID {
         return false;
     }
 
-    let mint = remaining_accounts[starting_index_for_referrer_accounts - 1].to_account_info();
+    let mint = remaining_accounts[expected_number_of_payouts_in_remaining + 1].to_account_info();
 
     if mint.key() != *expected_mint {
         return false;
