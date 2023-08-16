@@ -176,6 +176,7 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestWithReferral
                 &transfer_signer,
                 2, //First one is bl program, second is mint
                 0, //No payout in remaining accounts
+                ctx.accounts.referral_data_account.creator_referrer != Pubkey::default(),
             ) {
                 return Err(error!(MonoError::InvalidReferral));
             }
@@ -203,6 +204,7 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestWithReferral
                 &transfer_signer,
                 4, //bl, mint, referrer, referrer member
                 0, //No payout in remaining accounts
+                false,
             ) {
                 return Err(error!(MonoError::InvalidReferral));
             }

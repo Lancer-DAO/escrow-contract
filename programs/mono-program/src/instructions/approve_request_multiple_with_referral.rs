@@ -190,6 +190,7 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultipleWith
                 &transfer_signer,
                 expected_number_of_payouts_in_remaining + 2, //for bl and mint
                 expected_number_of_payouts_in_remaining,
+                ctx.accounts.referral_data_account.creator_referrer != Pubkey::default(),
             ) {
                 return Err(error!(MonoError::InvalidReferral));
             }
@@ -220,6 +221,7 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestMultipleWith
                 starting_index_for_referrer,
                 //doesn't apply here since not payout related
                 0,
+                false,
             ) {
                 return Err(error!(MonoError::InvalidReferral));
             }

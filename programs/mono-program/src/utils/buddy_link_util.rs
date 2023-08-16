@@ -19,6 +19,7 @@ pub fn transfer_reward_to_referrers<'info>(
     //to know where to start in the remaining accounts since lancer also uses them
     starting_index_for_referrer_accounts: usize,
     expected_number_of_payouts_in_remaining: usize,
+    has_creators: bool,
 ) -> bool {
     /*
     Remaining accounts
@@ -42,7 +43,11 @@ pub fn transfer_reward_to_referrers<'info>(
         return false;
     }
 
-    let other_remaining_accounts = &remaining_accounts[starting_index_for_referrer_accounts..];
+    let other_remaining_accounts = if !has_creators {
+        &remaining_accounts[starting_index_for_referrer_accounts..]
+    } else {
+        &remaining_accounts[starting_index_for_referrer_accounts..remaining_accounts.len() - 2]
+    };
 
     if referrals != other_remaining_accounts.iter().map(|a| a.key()).collect::<Vec<Pubkey>>().as_slice() {
         return false;
