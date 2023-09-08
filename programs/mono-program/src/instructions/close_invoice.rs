@@ -1,16 +1,23 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{TokenAccount, Token, Transfer, CloseAccount, self};
+use anchor_spl::{token::{TokenAccount, Token, CloseAccount, self}, associated_token::AssociatedToken};
 
 use crate::{constants::MONO_DATA, state::FeatureDataAccount, errors::MonoError};
 
 #[derive(Accounts)]
-pub struct CancelFeature<'info>
+pub struct CloseInvoice<'info>
 {
+    ///CHECK: PDA Authority
+    #[account(
+        seeds = [
+            MONO_DATA.as_bytes(),
+        ],
+        bump
+    )]
+    pub program_authority: UncheckedAccount<'info>,
+
+    // Data that will be getting replaced
     #[account(mut)]
     pub creator: Signer<'info>,
-
-    #[account(mut)]
-    pub creator_token_account: Account<'info, TokenAccount>,
 
     #[account(
         mut,
@@ -22,13 +29,8 @@ pub struct CancelFeature<'info>
         ],
         bump = feature_data_account.funds_data_account_bump,
         constraint = feature_data_account.creator == creator.key() @ MonoError::NotTheCreator,
-        constraint = (feature_data_account.funder_cancel == true &&
-                      feature_data_account.payout_cancel == true) ||
-                     (feature_data_account.funder_cancel == true &&
-                      feature_data_account.request_submitted == false)
-         @ MonoError::CannotCancelFeature,
     )]
-    pub feature_data_account: Account<'info, FeatureDataAccount>,
+    pub feature_data_account: Box<Account<'info, FeatureDataAccount>>,
 
     #[account(
         mut,
@@ -43,32 +45,15 @@ pub struct CancelFeature<'info>
         token::authority = program_authority,
         constraint = feature_token_account.mint == feature_data_account.funds_mint @ MonoError::InvalidMint
     )]
-    pub feature_token_account: Account<'info, TokenAccount>,
-
-    ///CHECK: PDA Authority
-    #[account(
-        seeds = [
-            MONO_DATA.as_bytes(),
-        ],
-        bump = feature_data_account.program_authority_bump
-    )]
-    pub program_authority: UncheckedAccount<'info>,
+    pub feature_token_account: Box<Account<'info, TokenAccount>>,
 
     pub token_program: Program<'info, Token>,
+    pub associated_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
 
 }
 
-impl<'info> CancelFeature<'info> {
-    fn transfer_context(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
-        CpiContext::new(
-            self.token_program.to_account_info().clone(),
-          Transfer {
-            from: self.feature_token_account.to_account_info(),
-            to: self.creator_token_account.to_account_info(),
-            authority: self.program_authority.to_account_info(),
-        })
-    }
-
+impl<'info> CloseInvoice<'info> {
     fn close_context(&self) -> CpiContext<'_, '_, '_, 'info, CloseAccount<'info>> {
         CpiContext::new(
             self.token_program.to_account_info().clone(),
@@ -78,24 +63,22 @@ impl<'info> CancelFeature<'info> {
             authority: self.program_authority.to_account_info(),
         })
     }
+
 }
 
-pub fn handler(ctx: Context<CancelFeature>, ) -> Result<()>
-{
+pub fn handler(        
+    ctx: Context<CloseInvoice>,
+)  -> Result<()> {
+    // Close Old Bounty
+    // Close token account owned by program that stored funds
     let seeds = &[
         MONO_DATA.as_bytes(),
         &[ctx.accounts.feature_data_account.program_authority_bump]
     ];
     let signer = [&seeds[..]];
 
-    token::transfer(
-        ctx.accounts.transfer_context().with_signer(&signer), 
-        ctx.accounts.feature_token_account.amount,
-    )?;
-
-    // Close token account owned by program that stored funds
     token::close_account(
-            ctx.accounts.close_context().with_signer(&signer)
+        ctx.accounts.close_context().with_signer(&signer)
     )
 
 }

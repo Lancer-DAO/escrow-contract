@@ -20,6 +20,10 @@ pub mod approve_request_multiple;
 pub mod approve_request_multiple_with_referral;
 pub mod approve_request_partial;
 pub mod create_referral_data_account;
+pub mod send_invoice;
+pub mod accept_invoice;
+pub mod reject_invoice;
+pub mod close_invoice;
 
 pub use create_feature_funding_account::*;
 pub use create_custodial_feature_funding_account::*;
@@ -43,3 +47,7 @@ pub use approve_request_multiple::*;
 pub use approve_request_multiple_with_referral::*;
 pub use approve_request_partial::*;
 pub use create_referral_data_account::*;
+pub use send_invoice::*;
+pub use accept_invoice::*;
+pub use reject_invoice::*;
+pub use close_invoice::*;
