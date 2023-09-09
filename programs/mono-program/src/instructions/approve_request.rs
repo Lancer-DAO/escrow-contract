@@ -133,8 +133,6 @@ pub fn handler(ctx: Context<ApproveRequest>, ) -> Result<()>
     ];
     let transfer_signer = [&transfer_seeds[..]];
 
-msg!("amount left(data) - {}", feature_data_account.amount);
-msg!("amount left(token) - {}", ctx.accounts.feature_token_account.amount);
 
 let mut bounty_amount = feature_data_account.amount;
     // pay lancer fee if admin did not create the bounty
@@ -143,7 +141,7 @@ let mut bounty_amount = feature_data_account.amount;
         let lancer_fee = (bounty_amount as f64)
                         .mul(LANCER_FEE as f64)
                         .div(PERCENT as f64) as u64;
-msg!("lancer fee = {}", lancer_fee);
+
         // transfer lancer fee
         token::transfer(
             ctx.accounts.transfer_bounty_fee_context().with_signer(&transfer_signer), 
@@ -170,8 +168,6 @@ msg!("lancer fee = {}", lancer_fee);
         )?;
 
     }
-msg!("remaining funds = {}", ctx.accounts.feature_token_account.amount);
-msg!("bounty amount {}", bounty_amount);    
 
 
     ctx.accounts.feature_token_account.reload()?;

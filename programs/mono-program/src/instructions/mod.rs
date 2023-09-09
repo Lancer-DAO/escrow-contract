@@ -24,6 +24,7 @@ pub mod send_invoice;
 pub mod accept_invoice;
 pub mod reject_invoice;
 pub mod close_invoice;
+pub mod admin_close_bounty;
 
 pub use create_feature_funding_account::*;
 pub use create_custodial_feature_funding_account::*;
@@ -51,3 +52,4 @@ pub use send_invoice::*;
 pub use accept_invoice::*;
 pub use reject_invoice::*;
 pub use close_invoice::*;
+pub use admin_close_bounty::*;

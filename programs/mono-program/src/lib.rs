@@ -151,4 +151,9 @@ pub mod mono_program {
     {
         close_invoice::handler(ctx)
     }
+
+    pub fn admin_close_bounty(ctx: Context<AdminCloseBounty>, ) -> Result<()>
+    {
+        admin_close_bounty::handler(ctx)
+    }
 }
