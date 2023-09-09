@@ -274,6 +274,8 @@ describe("cancel feature tests", () => {
         assert.equal((error as AnchorError).error.errorMessage, "Cannot Cancel Feature")
         }
 
+        tx = await provider.sendAndConfirm(new Transaction().add(submitRequestIx), [submitter])
+
         // creator votes to not cancel feature(voteToCancel)
         try{
         let voteToCancelIxBySubmitter = await voteToCancelInstruction(
@@ -283,6 +285,7 @@ describe("cancel feature tests", () => {
             false,
             program
           );
+          
         let creatorRevotesToCancelIx = await voteToCancelInstruction(
             acc.unixTimestamp,
             creator.publicKey,
@@ -291,30 +294,42 @@ describe("cancel feature tests", () => {
             program
         );
 
-            tx = await provider.sendAndConfirm(
-            new Transaction().add(voteToCancelIxByCreator).add(voteToCancelIxBySubmitter).add(creatorRevotesToCancelIx), 
-            [creator, submitter]
-            );
+          tx = await provider.sendAndConfirm(
+            new Transaction().add(voteToCancelIxByCreator), 
+            [creator]
+          );
+          console.log("creator votes to cancel tx ", tx)
 
-            acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
-            assert.equal(acc.payoutCancel, false);
-            assert.equal(acc.funderCancel, false);
-            assert.equal(acc.requestSubmitted, false)
+          tx = await provider.sendAndConfirm(
+            new Transaction().add(voteToCancelIxBySubmitter), 
+            [submitter]
+          );
+          console.log("Submitter votes to cancel tx ", tx)
 
+          tx = await provider.sendAndConfirm(
+            new Transaction().add(creatorRevotesToCancelIx), 
+            [creator]
+          );
+          console.log("creator votes again to cancel");
 
-            await program.methods.cancelFeature()
-            .accounts({
+          acc = await program.account.featureDataAccount.fetch(accounts[0].pubkey);
+          assert.equal(acc.payoutCancel, false);
+          assert.equal(acc.funderCancel, false);
+          assert.equal(acc.requestSubmitted, true)
+
+          await program.methods.cancelFeature()
+          .accounts({
             creator: creator.publicKey,
             creatorTokenAccount: creator_wsol_account.address,
             featureDataAccount: feature_data_account,
             featureTokenAccount: feature_token_account,
             programAuthority: program_authority,
             tokenProgram: TOKEN_PROGRAM_ID
-            }).signers([creator]).rpc()
-          }catch(err)
-          {
-              assert.equal((err as AnchorError).error.errorMessage, "Cannot Cancel Feature")
-          }
+          }).signers([creator]).rpc()
+        }catch(err)
+        {
+            assert.equal((err as AnchorError).error.errorMessage, "Cannot Cancel Feature")
+        }
         // submitter votes to cancel Feature(VoteToCancel)
         let voteToCancelIxBySubmitter = await voteToCancelInstruction(
           acc.unixTimestamp,

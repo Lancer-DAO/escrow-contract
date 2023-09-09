@@ -1,9 +1,9 @@
 
 
-use std::ops::{Mul, Div, Sub};
+use std::ops::{Mul, Div, };
 
 use anchor_lang::prelude::*;
-use anchor_spl::{token::{TokenAccount, Token, self, Transfer, CloseAccount}};
+use anchor_spl::token::{TokenAccount, Token, self, Transfer, CloseAccount};
 
 use crate::{constants::{MONO_DATA, PERCENT, LANCER_DAO, LANCER_ADMIN, LANCER_FEE, COMPLETER_FEE}, state::FeatureDataAccount, errors::MonoError};
 
@@ -134,7 +134,7 @@ pub fn handler(ctx: Context<ApproveRequest>, ) -> Result<()>
     let transfer_signer = [&transfer_seeds[..]];
 
 
-let mut bounty_amount = feature_data_account.amount;
+    let bounty_amount = feature_data_account.amount;
     // pay lancer fee if admin did not create the bounty
     if ctx.accounts.feature_data_account.creator.key() != LANCER_ADMIN
     {
@@ -147,7 +147,6 @@ let mut bounty_amount = feature_data_account.amount;
             ctx.accounts.transfer_bounty_fee_context().with_signer(&transfer_signer), 
         lancer_fee
         )?;
-        bounty_amount = bounty_amount.sub(lancer_fee);
 
         ctx.accounts.feature_token_account.reload()?;
 

@@ -13,7 +13,7 @@ pub struct AdminCloseBounty<'info>
     pub lancer_admin: Signer<'info>,
 
     #[account(mut)]
-    pub creator: Signer<'info>,
+    pub creator: SystemAccount<'info>,
 
     #[account(mut)]
     pub creator_token_account: Account<'info, TokenAccount>,
@@ -28,11 +28,10 @@ pub struct AdminCloseBounty<'info>
         ],
         bump = feature_data_account.funds_data_account_bump,
         constraint = feature_data_account.creator == creator.key() @ MonoError::NotTheCreator,
-        constraint = (feature_data_account.funder_cancel == true &&
-                      feature_data_account.payout_cancel == false) ||
-                     (feature_data_account.funder_cancel == true &&
-                      feature_data_account.request_submitted == false)
-         @ MonoError::CannotAdminCloseBounty,
+        constraint =  feature_data_account.payout_cancel == false && // might be unnecessary
+                      feature_data_account.request_submitted == false &&
+                      feature_data_account.current_submitter == Pubkey::default()
+         @ MonoError::AdminCannotCloseBounty,
     )]
     pub feature_data_account: Account<'info, FeatureDataAccount>,
 
@@ -94,6 +93,7 @@ pub fn handler(ctx: Context<AdminCloseBounty>, ) -> Result<()>
     ];
     let signer = [&seeds[..]];
 
+    
     token::transfer(
         ctx.accounts.transfer_context().with_signer(&signer), 
         ctx.accounts.feature_token_account.amount,

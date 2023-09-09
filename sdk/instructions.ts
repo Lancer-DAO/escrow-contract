@@ -960,3 +960,38 @@ export const closeInvoiceInstruction = async (
     })
     .instruction();
 };
+
+export const adminCloseBountyInstruction = async (
+  timestamp: string,
+  creator: PublicKey,
+  creator_token_account: PublicKey,
+  mint: PublicKey,
+  program: Program<MonoProgram>
+) => {
+  const [program_authority] = await findProgramAuthority(program);
+
+  const [feature_data_account] = await findFeatureAccount(
+    timestamp,
+    creator,
+    program
+  );
+  const [feature_token_account] = await findFeatureTokenAccount(
+    timestamp,
+    creator,
+    mint,
+    program
+  );
+
+  return await program.methods
+    .adminCloseBounty()
+    .accounts({
+      lancerAdmin: LANCER_ADMIN,
+      creator: creator,
+      creatorTokenAccount: creator_token_account,
+      featureDataAccount: feature_data_account,
+      featureTokenAccount: feature_token_account,
+      programAuthority: program_authority,
+      tokenProgram: TOKEN_PROGRAM_ID,
+    })
+    .instruction();
+};

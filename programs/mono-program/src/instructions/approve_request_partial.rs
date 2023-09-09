@@ -3,7 +3,7 @@
 use std::ops::{Mul, Div, Sub};
 
 use anchor_lang::prelude::*;
-use anchor_spl::{token::{TokenAccount, Token, self, Transfer,}};
+use anchor_spl::token::{TokenAccount, Token, self, Transfer,};
 use remove_approved_submitters::remove_submitter;
 
 
@@ -115,7 +115,6 @@ pub fn handler(ctx:Context<ApproveRequestPartial>, amount: u64 ) -> Result<()>
 {
     // let feature_data_account = &ctx.accounts.feature_data_account;
     require!(ctx.accounts.feature_data_account.amount > amount, MonoError::CannotWithdrawPartially);
-msg!("amount started(token) - {}", ctx.accounts.feature_token_account.amount);
 
     //TODO - test for this
     require!(!&ctx.accounts.feature_data_account.is_multiple_submitters, MonoError::ExpectedSingleSubmitter);
@@ -140,8 +139,6 @@ msg!("amount started(token) - {}", ctx.accounts.feature_token_account.amount);
             lancer_fee
         )?;
         bounty_amount = bounty_amount.sub(lancer_fee);
-msg!("lancer fee = {}", lancer_fee);
-msg!("bounty amount = {}", bounty_amount);
 
         ctx.accounts.feature_token_account.reload()?;
     }
@@ -156,7 +153,6 @@ msg!("bounty amount = {}", bounty_amount);
     )?;
 
     ctx.accounts.feature_token_account.reload()?;
-    msg!("amount left(data) - {}", ctx.accounts.feature_data_account.amount);
-    msg!("amount left(token) - {}", ctx.accounts.feature_token_account.amount);
+
     Ok(())
 }

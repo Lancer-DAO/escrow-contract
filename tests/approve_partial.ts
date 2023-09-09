@@ -23,50 +23,6 @@ describe("approve partial tests", () => {
       );
       const WSOL_AMOUNT = 2 * LAMPORTS_PER_SOL;
 
-      it("test createLancerTokenAccount works", async () => {
-        let lancer_admin = await createKeypair(provider);
-        
-        const [lancer_dao_token_account] = await findLancerTokenAccount(
-          WSOL_ADDRESS,
-          program
-        );
-        const [lancer_token_program_authority] = await findLancerProgramAuthority(
-          program
-        );
-      
-        try {
-          await program.methods.createLancerTokenAccount()
-          .accounts({
-            lancerAdmin: lancer_admin.publicKey,
-            fundsMint: WSOL_ADDRESS,
-            lancerDaoTokenAccount: lancer_dao_token_account,
-            programAuthority: lancer_token_program_authority,
-          }).signers([lancer_admin]).rpc()
-    
-        } catch (err) {
-          assert.equal((err as AnchorError).error.errorMessage,"You are not the Admin")
-        }
-      
-        const create_lancer_token_account_ix = await createLancerTokenAccountInstruction(
-          WSOL_ADDRESS,
-          program
-        );
-        await provider.sendAndConfirm(
-          new Transaction().add(create_lancer_token_account_ix), 
-          []
-        );
-
-        let lancer_token_account_info = await getAccount(
-          provider.connection,
-          lancer_dao_token_account
-        );
-        assert.equal(lancer_token_account_info.mint.toString(), WSOL_ADDRESS.toString())
-        assert.equal(
-          lancer_token_account_info.owner.toString(), 
-          lancer_token_program_authority.toString()
-        )
-      })
-
     it ("test approveRequestPartial works ", async () => {
         let creator = await createKeypair(provider);
             
