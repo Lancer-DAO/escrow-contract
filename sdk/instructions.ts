@@ -960,3 +960,45 @@ export const closeInvoiceInstruction = async (
     })
     .instruction();
 };
+
+export const achFundFeatureInstruction = async (
+  amount: number,
+  timestamp: string,
+  funder: PublicKey,
+  creator: PublicKey,
+  mint: PublicKey,
+  program: Program<MonoProgram>
+): Promise<TransactionInstruction> => {
+  const [feature_data_account] = await findFeatureAccount(
+    timestamp,
+    creator,
+    program
+  );
+  const [feature_token_account] = await findFeatureTokenAccount(
+    timestamp,
+    creator,
+    mint,
+    program
+  );
+
+  const [program_authority] = await findProgramAuthority(program);
+
+  const funder_token_account = await getAssociatedTokenAddress(mint, funder);
+
+  return await program.methods
+    .achFundFeature(new anchor.BN(amount))
+    .accounts({
+      creator: creator,
+      externalFunder: funder,
+      externalFunderTokenAccount: funder_token_account,
+      fundsMint: mint,
+      featureDataAccount: feature_data_account,
+      featureTokenAccount: feature_token_account,
+      programAuthority: program_authority,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
+    })
+    .instruction();
+};
+
+

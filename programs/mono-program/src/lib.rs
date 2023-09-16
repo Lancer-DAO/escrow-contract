@@ -15,6 +15,7 @@ declare_id!("Lag4h3EZK51MWC5L4VY7XeXmEmpo9TrAsgEhQXryHix");
 
 #[program]
 pub mod mono_program {
+
     use super::*;
 
     pub fn create_feature_funding_account(
@@ -34,6 +35,11 @@ pub mod mono_program {
     pub fn fund_feature(ctx: Context<FundFeature>, amount: u64) -> Result<()>
     {
         fund_feature::handler(ctx, amount)
+    }
+
+    pub fn ach_fund_feature(ctx: Context<ACHFundFeature>, amount: u64) -> Result<()>
+    {
+        ach_fund_feature::handler(ctx, amount)
     }
 
     pub fn add_approved_submitters(ctx: Context<AddApprovedSubmitters>) -> Result<()>
