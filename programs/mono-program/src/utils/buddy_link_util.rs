@@ -17,34 +17,49 @@ pub fn transfer_reward_to_referrers<'info>(
     program_authority: &AccountInfo<'info>,
     transfer_signer_seeds: &[&[&[u8]]],
     //to know where to start in the remaining accounts since lancer also uses them
-    expected_remaining_accounts_before_buddylink: usize,
+    starting_index_for_referrer_accounts: usize,
+    expected_number_of_payouts_in_remaining: usize,
+    has_creators: bool,
 ) -> bool {
     /*
     Remaining accounts
 
     -Buddy Link Program
     -Mint
-    -5 referrer treasuries / token accounts (default public key if not referred), will be
-    skipped in buddylink transfer
+    -up to 5 combination of
+        referrer treasuries / token accounts (default public key if not referred), will be
+            skipped in buddylink transfer
+        referrer member
      */
 
-    if remaining_accounts.len() < expected_remaining_accounts_before_buddylink + 3 {
+    /*
+    Starting index is the index of the first referrer treasury / token account
+    2 for BL and mint
+    expected + 1 because on single transfer, there is no remaining accounts
+     */
+    let minimum_remaining_account_length = starting_index_for_referrer_accounts + (expected_number_of_payouts_in_remaining + 1) * 2;
+
+    if remaining_accounts.len() < minimum_remaining_account_length {
         return false;
     }
 
-    let other_remaining_accounts = &remaining_accounts[expected_remaining_accounts_before_buddylink + 2..];
+    let other_remaining_accounts = if !has_creators {
+        &remaining_accounts[starting_index_for_referrer_accounts..]
+    } else {
+        &remaining_accounts[starting_index_for_referrer_accounts..remaining_accounts.len() - 2]
+    };
 
     if referrals != other_remaining_accounts.iter().map(|a| a.key()).collect::<Vec<Pubkey>>().as_slice() {
         return false;
     }
 
-    let buddy_link_program = remaining_accounts[expected_remaining_accounts_before_buddylink].to_account_info();
+    let buddy_link_program = remaining_accounts[expected_number_of_payouts_in_remaining].to_account_info();
 
     if buddy_link_program.key() != BUDDY_LINK_PROGRAM_ID {
         return false;
     }
 
-    let mint = remaining_accounts[expected_remaining_accounts_before_buddylink + 1].to_account_info();
+    let mint = remaining_accounts[expected_number_of_payouts_in_remaining + 1].to_account_info();
 
     if mint.key() != *expected_mint {
         return false;
@@ -84,7 +99,7 @@ pub fn transfer_reward_to_referrers<'info>(
     instruction_data.extend_from_slice(&hash("global:transfer_reward_unchecked_multiple".as_bytes()).to_bytes()[..8]);
     instruction_data.extend_from_slice(&total_amount.try_to_vec().unwrap());
     instruction_data.extend_from_slice(&shares_in_bps.try_to_vec().unwrap());
-    instruction_data.push(false as u8); //use on-chain analytics
+    instruction_data.push(true as u8); //use on-chain analytics
 
     let instruction = Instruction {
         program_id: buddy_link_program.key(),
@@ -105,7 +120,7 @@ pub fn validate_referrer<'info>(
     payer: &AccountInfo<'info>,
     authority: &AccountInfo<'info>,
     remaining_accounts: &[AccountInfo<'info>],
-) -> Option<Pubkey> {
+) -> Option<(Pubkey, Pubkey)> {
     /*
     Remaining accounts
 
@@ -174,8 +189,14 @@ pub fn validate_referrer<'info>(
     ).expect("Error validating referrer");
 
     Some(if remaining_account_length == 8 {
-        remaining_accounts[7].key() //the treasury pda (if no spl, a.k.a. sol)
+        (
+            remaining_accounts[7].key(), //the treasury pda (if no spl, a.k.a. sol)
+            remaining_accounts[5].key() //the referrer member
+        )
     } else {
-        remaining_accounts[9].key() //the token account
+        (
+            remaining_accounts[9].key(), //the token account
+            remaining_accounts[5].key() //the referrer member
+        )
     })
 }

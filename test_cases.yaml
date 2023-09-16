@@ -410,3 +410,28 @@ submit Request tests:
       submitRequestMultiple(1): pass
       submitRequestMultiple(2): pass
       submitRequestMultiple(creator): pass
+
+invoice tests:
+  test sending and accepting invoice works(when lancer admin does not accept invoice):
+    instruction:
+      createFeatureFundingAccount: pass
+      sendInvoice: pass
+      acceptInvoice:
+        payout_account != new_creator:
+          "A seeds constraint was violated": fail
+      acceptInvoice:
+        new_creator != lancer_admin:
+          "Insufficient funds to pay lancer fee": fail
+      acceptInvoice: pass
+
+  test sending and accepting invoice works(when lancer admin does accepts invoice):
+    instruction:
+      createFeatureFundingAccount: pass
+      sendInvoice: pass
+      acceptInvoice:
+        payout_account != new_creator:
+          "A seeds constraint was violated": fail
+      acceptInvoice:
+        new_creator_amount < bounty_amount:
+          "Insufficient funds": fail
+      acceptInvoice: pass

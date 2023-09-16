@@ -56,4 +56,7 @@ pub enum MonoError
 
     #[msg("Invalid referral provided.")]
     InvalidReferral,
+
+    #[msg("Insufficient funds")]
+    InsufficientFunds,
 }
