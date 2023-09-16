@@ -25,7 +25,9 @@ pub mod send_invoice;
 pub mod accept_invoice;
 pub mod reject_invoice;
 pub mod close_invoice;
+pub mod fixes;
 
+pub use fixes::*;
 pub use create_feature_funding_account::*;
 pub use create_custodial_feature_funding_account::*;
 pub use fund_feature::*;

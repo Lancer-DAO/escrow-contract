@@ -165,7 +165,7 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestWithReferral
             lancer_fee = lancer_fee.sub(referral_fee);
 
             if !transfer_reward_to_referrers(
-                &[referral_key],
+                &[referral_key, ctx.accounts.referral_data_account.approved_referrers[1]],
                 &ctx.accounts.feature_token_account.mint,
                 referral_fee,
                 vec![10_000],
@@ -174,7 +174,43 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestWithReferral
                 &ctx.accounts.feature_token_account.to_account_info(),
                 &ctx.accounts.program_authority.to_account_info(),
                 &transfer_signer,
-                0,
+                2, //First one is bl program, second is mint
+                0, //No payout in remaining accounts
+                ctx.accounts.referral_data_account.creator_referrer != Pubkey::default(),
+            ) {
+                return Err(error!(MonoError::InvalidReferral));
+            }
+        }
+
+        //transfer creator referral fee
+        if ctx.accounts.referral_data_account.creator_referrer != Pubkey::default() {
+            // referral fee is 10% of lancer current fees
+            let referral_fee = fees
+                .mul(REFERRAL_FEE)
+                .div(PERCENT);
+
+            lancer_fee = lancer_fee.sub(referral_fee);
+
+            let starting_index = if referral_key != Pubkey::default() {
+                2
+            } else {
+                0
+            };
+
+            //To get the last token account
+            if !transfer_reward_to_referrers(
+                &[ctx.accounts.referral_data_account.creator_referrer, ctx.accounts.referral_data_account.creator_member],
+                &ctx.accounts.feature_token_account.mint,
+                referral_fee,
+                vec![10_000],
+                &ctx.remaining_accounts,
+                &ctx.accounts.token_program.to_account_info(),
+                &ctx.accounts.feature_token_account.to_account_info(),
+                &ctx.accounts.program_authority.to_account_info(),
+                &transfer_signer,
+                2 + starting_index, //bl, mint, referrer, referrer member
+                0, //No payout in remaining accounts
+                false,
             ) {
                 return Err(error!(MonoError::InvalidReferral));
             }
