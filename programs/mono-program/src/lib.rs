@@ -9,8 +9,10 @@ mod utils;
 
 use crate::instructions::*;
 
-
+#[cfg(feature = "mainnet")]
 declare_id!("LNCRQTZfeLMFHsSggvVc9kQWb1A98PEqHxVzBraWpQs");
+#[cfg(feature = "localnet")]
+declare_id!("Lag4h3EZK51MWC5L4VY7XeXmEmpo9TrAsgEhQXryHix");
 
 
 #[program]

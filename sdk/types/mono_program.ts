@@ -1481,6 +1481,11 @@ export type MonoProgram = {
           }
         },
         {
+          "name": "referrer",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "rent",
           "isMut": false,
           "isSigner": false
@@ -2429,6 +2434,26 @@ export type MonoProgram = {
   ],
   "accounts": [
     {
+      "name": "dispute",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "client",
+            "type": "publicKey"
+          },
+          {
+            "name": "submitter",
+            "type": "publicKey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "featureDataAccount",
       "type": {
         "kind": "struct",
@@ -2516,6 +2541,39 @@ export type MonoProgram = {
     },
     {
       "name": "referralDataAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "referralDataAccountBump",
+            "type": "u8"
+          },
+          {
+            "name": "approvedReferrers",
+            "type": {
+              "array": [
+                "publicKey",
+                10
+              ]
+            }
+          },
+          {
+            "name": "noOfSubmitters",
+            "type": "u8"
+          },
+          {
+            "name": "creatorReferrer",
+            "type": "publicKey"
+          },
+          {
+            "name": "creatorMember",
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "referralDataAccountOld",
       "type": {
         "kind": "struct",
         "fields": [
@@ -4132,6 +4190,11 @@ export const IDL: MonoProgram = {
           }
         },
         {
+          "name": "referrer",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "rent",
           "isMut": false,
           "isSigner": false
@@ -5080,6 +5143,26 @@ export const IDL: MonoProgram = {
   ],
   "accounts": [
     {
+      "name": "dispute",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "client",
+            "type": "publicKey"
+          },
+          {
+            "name": "submitter",
+            "type": "publicKey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "featureDataAccount",
       "type": {
         "kind": "struct",
@@ -5167,6 +5250,39 @@ export const IDL: MonoProgram = {
     },
     {
       "name": "referralDataAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "referralDataAccountBump",
+            "type": "u8"
+          },
+          {
+            "name": "approvedReferrers",
+            "type": {
+              "array": [
+                "publicKey",
+                10
+              ]
+            }
+          },
+          {
+            "name": "noOfSubmitters",
+            "type": "u8"
+          },
+          {
+            "name": "creatorReferrer",
+            "type": "publicKey"
+          },
+          {
+            "name": "creatorMember",
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "referralDataAccountOld",
       "type": {
         "kind": "struct",
         "fields": [

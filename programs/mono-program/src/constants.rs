@@ -13,7 +13,16 @@ pub const LANCER_FEE: u64 = 10;
 // 1% out of 110% or 10% out of lancer_fee
 pub const REFERRAL_FEE: u64 = 10;
 // 1% out of 110% or 10% out of lancer_fee
+
+#[cfg(feature = "mainnet")]
 pub static LANCER_ADMIN: Pubkey = pubkey!("WbmLPptTGZTFK5ZSks7oaa4Qx69qS3jFXMrAsbWz1or");
+#[cfg(feature = "localnet")]
+pub static LANCER_ADMIN: Pubkey = pubkey!("admbKYEXAPNHZbzNADk7arzf8ZbDiZ9u4qzNS3XwRXx");
+
 pub const PERCENT: u64 = 100;
 pub const LANCER_DAO: &str = "LANCER_DAO";
+
+#[cfg(feature = "mainnet")]
+pub const BUDDY_LINK_PROGRAM_ID: Pubkey = pubkey!("BUDDYtQp7Di1xfojiCSVDksiYLQx511DPdj2nbtG9Yu5"); //mainnet
+#[cfg(feature = "localnet")]
 pub const BUDDY_LINK_PROGRAM_ID: Pubkey = pubkey!("BUDDYtQp7Di1xfojiCSVDksiYLQx511DPdj2nbtG9Yu5"); //devnet

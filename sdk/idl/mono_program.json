@@ -1481,6 +1481,11 @@
           }
         },
         {
+          "name": "referrer",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "rent",
           "isMut": false,
           "isSigner": false
@@ -2429,6 +2434,26 @@
   ],
   "accounts": [
     {
+      "name": "Dispute",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "client",
+            "type": "publicKey"
+          },
+          {
+            "name": "submitter",
+            "type": "publicKey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "FeatureDataAccount",
       "type": {
         "kind": "struct",
@@ -2516,6 +2541,39 @@
     },
     {
       "name": "ReferralDataAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "referralDataAccountBump",
+            "type": "u8"
+          },
+          {
+            "name": "approvedReferrers",
+            "type": {
+              "array": [
+                "publicKey",
+                10
+              ]
+            }
+          },
+          {
+            "name": "noOfSubmitters",
+            "type": "u8"
+          },
+          {
+            "name": "creatorReferrer",
+            "type": "publicKey"
+          },
+          {
+            "name": "creatorMember",
+            "type": "publicKey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ReferralDataAccountOld",
       "type": {
         "kind": "struct",
         "fields": [
@@ -2648,6 +2706,6 @@
     }
   ],
   "metadata": {
-    "address": "LNCRQTZfeLMFHsSggvVc9kQWb1A98PEqHxVzBraWpQs"
+    "address": "Lag4h3EZK51MWC5L4VY7XeXmEmpo9TrAsgEhQXryHix"
   }
 }

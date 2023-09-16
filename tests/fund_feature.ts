@@ -868,7 +868,7 @@ describe("fund feature tests", () => {
         let payer = await createKeypair(provider);
         let external_funder = await createKeypair(provider);
         let funder = await provider.publicKey;
-console.log("begins")      
+
         // const creator_wsol_account = await getOrCreateAssociatedTokenAccount(
         //   provider.connection,
         //   payer,
