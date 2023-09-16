@@ -10,11 +10,12 @@ mod utils;
 use crate::instructions::*;
 
 
-declare_id!("Lag4h3EZK51MWC5L4VY7XeXmEmpo9TrAsgEhQXryHix");
+declare_id!("LNCRQTZfeLMFHsSggvVc9kQWb1A98PEqHxVzBraWpQs");
 
 
 #[program]
 pub mod mono_program {
+
     use super::*;
 
     pub fn create_feature_funding_account(
@@ -34,6 +35,11 @@ pub mod mono_program {
     pub fn fund_feature(ctx: Context<FundFeature>, amount: u64) -> Result<()>
     {
         fund_feature::handler(ctx, amount)
+    }
+
+    pub fn ach_fund_feature(ctx: Context<ACHFundFeature>, amount: u64) -> Result<()>
+    {
+        ach_fund_feature::handler(ctx, amount)
     }
 
     pub fn add_approved_submitters(ctx: Context<AddApprovedSubmitters>) -> Result<()>
@@ -107,7 +113,7 @@ pub mod mono_program {
     }
 
     // new functions to support update
-    pub fn create_referral_data_account(ctx: Context<CreateReferralDataAccount>) -> Result<()>
+    pub fn create_referral_data_account<'info>(ctx: Context<'_, '_, '_, 'info, CreateReferralDataAccount<'info>>) -> Result<()>
     {
         create_referral_data_account::handler(ctx)
     }
@@ -131,6 +137,16 @@ pub mod mono_program {
     {
         approve_request_multiple_with_referral::handler(ctx)
     }
+
+    // pub fn resize_referral_account<'info>(ctx: Context<'_, '_, '_, 'info, ResizeReferralAccount<'info>>) -> Result<()>
+    // {
+    //     resize_referral_account::handler(ctx)
+    // }
+    //
+    // pub fn add_referrer_member<'info>(ctx: Context<'_, '_, '_, 'info, AddReferrerMember<'info>>, referrer_members: Vec<Pubkey>) -> Result<()>
+    // {
+    //     add_referrer_member::handler(ctx, referrer_members)
+    // }
 
     pub fn send_invoice(ctx: Context<SendInvoice>, amount: u64) -> Result<()>
     {

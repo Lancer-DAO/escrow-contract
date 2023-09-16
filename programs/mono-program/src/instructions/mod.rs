@@ -1,6 +1,7 @@
 pub mod create_feature_funding_account;
 pub mod create_custodial_feature_funding_account;
 pub mod fund_feature;
+pub mod ach_fund_feature;
 pub mod add_approved_submitters;
 pub mod add_approved_submitters_v1;
 pub mod submit_request;
@@ -24,10 +25,13 @@ pub mod send_invoice;
 pub mod accept_invoice;
 pub mod reject_invoice;
 pub mod close_invoice;
+pub mod fixes;
 
+pub use fixes::*;
 pub use create_feature_funding_account::*;
 pub use create_custodial_feature_funding_account::*;
 pub use fund_feature::*;
+pub use ach_fund_feature::*;
 pub use add_approved_submitters::*;
 pub use add_approved_submitters_v1::*;
 pub use submit_request::*;
