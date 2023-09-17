@@ -88,71 +88,141 @@ pub struct ApproveRequestPartial<'info>
 
 }
 
-impl<'info> ApproveRequestPartial<'info> {
-    fn transfer_bounty_context(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
-        CpiContext::new(
-            self.token_program.to_account_info().clone(),
-          Transfer {
-            from: self.feature_token_account.to_account_info(),
-            to: self.payout_account.to_account_info(),
-            authority: self.program_authority.to_account_info(),
-        })
-    }
-
-    fn transfer_bounty_fee_context(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
-        CpiContext::new(
-            self.token_program.to_account_info().clone(),
-          Transfer {
-            from: self.feature_token_account.to_account_info(),
-            to: self.lancer_dao_token_account.to_account_info(),
-            authority: self.program_authority.to_account_info(),
-        })
-    }
-
-}
-
 pub fn handler(ctx:Context<ApproveRequestPartial>, amount: u64 ) -> Result<()>
 {
+    let feature_data_account = &mut ctx.accounts.feature_data_account;
+    let feature_token_account = &mut ctx.accounts.feature_token_account;
+
+    partial_pay(
+        feature_data_account, 
+        feature_token_account, 
+        &ctx.accounts.submitter.to_account_info(), 
+        &ctx.accounts.payout_account.to_account_info(), 
+        &ctx.accounts.lancer_dao_token_account.to_account_info(), 
+        &ctx.accounts.program_authority.to_account_info(), 
+        &ctx.accounts.token_program.to_account_info(), 
+        amount,
+    )
+
+    // // let feature_data_account = &ctx.accounts.feature_data_account;
+    // require!(ctx.accounts.feature_data_account.amount > amount, MonoError::CannotWithdrawPartially);
+
+    // //TODO - test for this
+    // require!(!&ctx.accounts.feature_data_account.is_multiple_submitters, MonoError::ExpectedSingleSubmitter);
+
+    // let transfer_seeds = &[
+    //     MONO_DATA.as_bytes(),
+    //     &[ctx.accounts.feature_data_account.program_authority_bump]
+    // ];
+    // let transfer_signer = [&transfer_seeds[..]];
+
+    // let mut bounty_amount: u64 = amount;
+    // // pay lancer fee if admin did not create the bounty
+    // if ctx.accounts.feature_data_account.creator.key() != LANCER_ADMIN
+    // {// takes 0.05% 
+    //     let lancer_fee = (bounty_amount as f64)
+    //                     .mul(LANCER_FEE as f64)
+    //                     .div(2 as f64)
+    //                     .div(PERCENT as f64) as u64;
+    //     // transfer lancer fee
+    //     token::transfer(
+    //         ctx.accounts.transfer_bounty_fee_context().with_signer(&transfer_signer), 
+    //         lancer_fee
+    //     )?;
+    //     bounty_amount = bounty_amount.sub(lancer_fee);
+
+    //     ctx.accounts.feature_token_account.reload()?;
+    // }
+
+    // remove_submitter(ctx.accounts.submitter.key, &mut ctx.accounts.feature_data_account)?;
+    // ctx.accounts.feature_data_account.amount = ctx.accounts.feature_data_account.amount.sub(amount);
+
+    // // pay the completer remaining funds(0.95%)
+    // token::transfer(
+    //     ctx.accounts.transfer_bounty_context().with_signer(&transfer_signer), 
+    //     bounty_amount,
+    // )?;
+
+    // ctx.accounts.feature_token_account.reload()?;
+
+    // Ok(())
+}
+
+pub fn partial_pay<'a>(
+    feature_data_account: &mut FeatureDataAccount,
+    feature_token_account: &mut Account<'a, TokenAccount>,
+    submitter: &AccountInfo<'a>,
+    payout_account: &AccountInfo<'a>,
+    lancer_dao_token_account: &AccountInfo<'a>,
+    program_authority: &AccountInfo<'a>,
+    token_program: &AccountInfo<'a>,
+    amount: u64,
+) -> Result<()>
+{
     // let feature_data_account = &ctx.accounts.feature_data_account;
-    require!(ctx.accounts.feature_data_account.amount > amount, MonoError::CannotWithdrawPartially);
+    require!(feature_data_account.amount > amount, MonoError::CannotWithdrawPartially);
 
     //TODO - test for this
-    require!(!&ctx.accounts.feature_data_account.is_multiple_submitters, MonoError::ExpectedSingleSubmitter);
+    require!(!&feature_data_account.is_multiple_submitters, MonoError::ExpectedSingleSubmitter);
 
     let transfer_seeds = &[
         MONO_DATA.as_bytes(),
-        &[ctx.accounts.feature_data_account.program_authority_bump]
+        &[feature_data_account.program_authority_bump]
     ];
     let transfer_signer = [&transfer_seeds[..]];
 
     let mut bounty_amount: u64 = amount;
     // pay lancer fee if admin did not create the bounty
-    if ctx.accounts.feature_data_account.creator.key() != LANCER_ADMIN
+    if feature_data_account.creator.key() != LANCER_ADMIN
     {// takes 0.05% 
         let lancer_fee = (bounty_amount as f64)
                         .mul(LANCER_FEE as f64)
                         .div(2 as f64)
                         .div(PERCENT as f64) as u64;
+
+        let cpi_accounts = token::Transfer{
+            from: feature_token_account.to_account_info(),
+            to: lancer_dao_token_account.to_account_info(),
+            authority: program_authority.to_account_info(),
+        };
+
         // transfer lancer fee
         token::transfer(
-            ctx.accounts.transfer_bounty_fee_context().with_signer(&transfer_signer), 
+            // ctx.accounts.transfer_bounty_fee_context().with_signer(&transfer_signer),
+            CpiContext::new_with_signer(
+                token_program.to_account_info(), 
+                cpi_accounts,
+                &transfer_signer,
+            ), 
             lancer_fee
         )?;
         bounty_amount = bounty_amount.sub(lancer_fee);
 
-        ctx.accounts.feature_token_account.reload()?;
+        feature_token_account.reload()?;
     }
 
-    remove_submitter(ctx.accounts.submitter.key, &mut ctx.accounts.feature_data_account)?;
-    ctx.accounts.feature_data_account.amount = ctx.accounts.feature_data_account.amount.sub(amount);
+    remove_submitter(submitter.key, feature_data_account)?;
+    feature_data_account.amount = feature_data_account.amount.sub(amount);
+
+    let cpi_accounts = token::Transfer{
+        from: feature_token_account.to_account_info(),
+        to: payout_account.to_account_info(),
+        authority: program_authority.to_account_info(),
+    };
+
 
     // pay the completer remaining funds(0.95%)
     token::transfer(
-        ctx.accounts.transfer_bounty_context().with_signer(&transfer_signer), 
+        CpiContext::new_with_signer(
+            token_program.to_account_info(), 
+            cpi_accounts,
+            &transfer_signer,
+        ), 
         bounty_amount,
     )?;
 
-    ctx.accounts.feature_token_account.reload()?;
+    feature_token_account.reload()?;
 
     Ok(())
+
 }

@@ -2430,6 +2430,133 @@
         }
       ],
       "args": []
+    },
+    {
+      "name": "createDispute",
+      "accounts": [
+        {
+          "name": "disputeAdmin",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "creator",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "disputeAccount",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "dispute"
+              },
+              {
+                "kind": "account",
+                "type": "string",
+                "account": "FeatureDataAccount",
+                "path": "feature_data_account.unix_timestamp"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "creator"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "account": "FeatureDataAccount",
+                "path": "feature_data_account.funds_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "featureDataAccount",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "mono"
+              },
+              {
+                "kind": "account",
+                "type": "string",
+                "account": "FeatureDataAccount",
+                "path": "feature_data_account.unix_timestamp"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "creator"
+              }
+            ]
+          }
+        },
+        {
+          "name": "featureTokenAccount",
+          "isMut": true,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "mono"
+              },
+              {
+                "kind": "account",
+                "type": "string",
+                "account": "FeatureDataAccount",
+                "path": "feature_data_account.unix_timestamp"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "path": "creator"
+              },
+              {
+                "kind": "account",
+                "type": "publicKey",
+                "account": "FeatureDataAccount",
+                "path": "feature_data_account.funds_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "programAuthority",
+          "isMut": false,
+          "isSigner": false,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "type": "string",
+                "value": "mono"
+              }
+            ]
+          }
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
@@ -2444,6 +2571,14 @@
           },
           {
             "name": "submitter",
+            "type": "publicKey"
+          },
+          {
+            "name": "unixTimestamp",
+            "type": "string"
+          },
+          {
+            "name": "mint",
             "type": "publicKey"
           },
           {

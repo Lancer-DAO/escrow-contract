@@ -73,7 +73,7 @@ pub fn remove_submitter(submitter: &Pubkey, feature_data_account: &mut FeatureDa
         if approved_submitter == submitter.key(){
             is_submitter_present = true;
 
-            feature_data_account.no_of_submitters -= 1;
+            feature_data_account.no_of_submitters -= 1;// TODO - Remove (-=)
         }
 
         if is_submitter_present && submitter_index + 1 == MAX_NO_OF_SUBMITTERS  {
@@ -85,7 +85,7 @@ pub fn remove_submitter(submitter: &Pubkey, feature_data_account: &mut FeatureDa
             feature_data_account.approved_submitters[submitter_index + 1];
         }
 
-        submitter_index += 1;
+        submitter_index += 1; //TODO - Remove (+=)
     }    
 
     Ok(())

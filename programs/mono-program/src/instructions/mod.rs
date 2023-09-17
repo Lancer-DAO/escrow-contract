@@ -1,5 +1,6 @@
 pub mod create_feature_funding_account;
 pub mod create_custodial_feature_funding_account;
+pub mod create_dispute;
 pub mod fund_feature;
 pub mod ach_fund_feature;
 pub mod add_approved_submitters;
@@ -31,6 +32,7 @@ pub mod fixes;
 pub use fixes::*;
 pub use create_feature_funding_account::*;
 pub use create_custodial_feature_funding_account::*;
+pub use create_dispute::*;
 pub use fund_feature::*;
 pub use ach_fund_feature::*;
 pub use add_approved_submitters::*;

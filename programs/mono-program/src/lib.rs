@@ -174,4 +174,9 @@ pub mod mono_program {
     {
         admin_close_bounty::handler(ctx)
     }
+
+    pub fn create_dispute(ctx: Context<CreateDispute>, ) -> Result<()>
+    {
+        create_dispute::handler(ctx)
+    }
 }
