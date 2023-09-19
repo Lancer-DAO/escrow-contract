@@ -1037,3 +1037,35 @@ export const adminCloseBountyInstruction = async (
     })
     .instruction();
 };
+
+export const createDisputeInstruction = async (
+  timestamp,
+  dispute_key: PublicKey,
+  creator: PublicKey,
+  mint: PublicKey,
+  program: Program<MonoProgram>,
+) => {
+  const [feature_data_account] = await findFeatureAccount(
+    timestamp,
+    creator,
+    program
+  );
+  const [feature_token_account] = await findFeatureTokenAccount(
+    timestamp,
+    creator,
+    mint,
+    program
+  );
+
+  const [program_authority] = await findProgramAuthority(program);
+
+  return await program.methods.createDispute().accounts({
+    creator: creator,
+    featureDataAccount: feature_data_account,
+    featureTokenAccount: feature_token_account,
+    programAuthority: program_authority,
+    disputeAdmin: dispute_key,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    systemProgram: SystemProgram.programId,
+  }).instruction();
+}

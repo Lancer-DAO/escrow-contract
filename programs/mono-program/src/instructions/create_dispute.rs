@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{TokenAccount, Token, self};
+use anchor_spl::token::{TokenAccount, Token};
 
 use crate::{constants::{MONO_DATA, DISPUTE}, state::{FeatureDataAccount, Dispute}, errors::MonoError};
 
@@ -9,7 +9,7 @@ pub struct CreateDispute<'info>
 
     #[account(
         mut,
-        constraint = Dispute::is_valid_dispute_key(dispute_admin.key()) //
+        constraint = Dispute::is_valid_dispute_key(dispute_admin.key()) @ MonoError::InvalidDisputePubkey
     )]
     pub dispute_admin: Signer<'info>,
 
@@ -40,11 +40,11 @@ pub struct CreateDispute<'info>
         ],
         bump = feature_data_account.funds_data_account_bump,
         constraint = feature_data_account.creator == creator.key() @ MonoError::NotTheCreator,
-        constraint = (feature_data_account.funder_cancel == true &&
-                      feature_data_account.payout_cancel == true) ||
-                     (feature_data_account.funder_cancel == true &&
-                      feature_data_account.request_submitted == false)
-         @ MonoError::CannotCancelFeature,
+        constraint =  feature_data_account.funder_cancel == false ||
+                      feature_data_account.payout_cancel == false ||
+                      feature_data_account.request_submitted == true
+         @ MonoError::CannotDispute,
+         // Cannot Dispute If both client(funder_cancel) and freelancer(payout_cancel) votes true to cancel feature
     )]
     pub feature_data_account: Account<'info, FeatureDataAccount>,
 
@@ -84,9 +84,12 @@ pub fn handler(ctx: Context<CreateDispute>, ) -> Result<()>
     dispute_account.unix_timestamp = String::from(&ctx.accounts.feature_data_account.unix_timestamp);// (unix_timestamp);
 
     dispute_account.submitter = ctx.accounts.feature_data_account.current_submitter;
-    dispute_account.client = ctx.accounts.creator.key();
+    dispute_account.creator = ctx.accounts.creator.key();
     dispute_account.mint = ctx.accounts.feature_data_account.funds_mint;
     dispute_account.amount = ctx.accounts.feature_data_account.amount;
+    dispute_account.dispute_account_bump = *ctx.bumps.get("dispute_account").unwrap();
+    dispute_account.program_authority_bump = ctx.accounts.feature_data_account.program_authority_bump;
+    dispute_account.funds_token_account_bump = ctx.accounts.feature_data_account.funds_token_account_bump;
 
     Ok(())
 }

@@ -3,7 +3,7 @@
 use std::ops::{Mul, Div, };
 
 use anchor_lang::prelude::*;
-use anchor_spl::token::{TokenAccount, Token, self, Transfer, CloseAccount};
+use anchor_spl::token::{TokenAccount, Token, self};
 
 use crate::{constants::{MONO_DATA, PERCENT, LANCER_DAO, LANCER_ADMIN, LANCER_FEE, COMPLETER_FEE}, state::FeatureDataAccount, errors::MonoError};
 
@@ -87,43 +87,33 @@ pub struct ApproveRequest<'info>
 
 }
 
-impl<'info> ApproveRequest<'info> {
-    fn transfer_bounty_context(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
-        CpiContext::new(
-            self.token_program.to_account_info().clone(),
-          Transfer {
-            from: self.feature_token_account.to_account_info(),
-            to: self.payout_account.to_account_info(),
-            authority: self.program_authority.to_account_info(),
-        })
-    }
+pub fn handler(ctx: Context<ApproveRequest>, ) -> Result<()>
+{
+    let feature_data_account = &mut ctx.accounts.feature_data_account;
+    let feature_token_account = &mut ctx.accounts.feature_token_account;
 
-    fn transfer_bounty_fee_context(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
-        CpiContext::new(
-            self.token_program.to_account_info().clone(),
-          Transfer {
-            from: self.feature_token_account.to_account_info(),
-            to: self.lancer_dao_token_account.to_account_info(),
-            authority: self.program_authority.to_account_info(),
-        })
-    }
-
-
-    fn close_context(&self) -> CpiContext<'_, '_, '_, 'info, CloseAccount<'info>> {
-        CpiContext::new(
-            self.token_program.to_account_info().clone(),
-          CloseAccount {
-            account: self.feature_token_account.to_account_info(),
-            destination: self.creator.to_account_info(),
-            authority: self.program_authority.to_account_info(),
-        })
-    }
+    approve_request(
+        feature_data_account, 
+        feature_token_account, 
+        &ctx.accounts.creator.to_account_info(), 
+        &ctx.accounts.payout_account.to_account_info(), 
+        &ctx.accounts.lancer_dao_token_account.to_account_info(), 
+        &ctx.accounts.program_authority.to_account_info(), 
+        &ctx.accounts.token_program.to_account_info()
+    )
 
 }
 
-pub fn handler(ctx: Context<ApproveRequest>, ) -> Result<()>
+pub fn approve_request<'a>(
+    feature_data_account: &mut FeatureDataAccount,
+    feature_token_account: &mut Account<'a, TokenAccount>,
+    creator: &AccountInfo<'a>,
+    payout_account: &AccountInfo<'a>,
+    lancer_dao_token_account: &AccountInfo<'a>,
+    program_authority: &AccountInfo<'a>,
+    token_program: &AccountInfo<'a>,
+) -> Result<()>
 {
-    let feature_data_account = &ctx.accounts.feature_data_account;
     //TODO - test for this
     require!(!feature_data_account.is_multiple_submitters, MonoError::ExpectedSingleSubmitter);
 
@@ -136,51 +126,101 @@ pub fn handler(ctx: Context<ApproveRequest>, ) -> Result<()>
 
     let bounty_amount = feature_data_account.amount;
     // pay lancer fee if admin did not create the bounty
-    if ctx.accounts.feature_data_account.creator.key() != LANCER_ADMIN
+    if feature_data_account.creator.key() != LANCER_ADMIN
     {
         let lancer_fee = (bounty_amount as f64)
                         .mul(LANCER_FEE as f64)
                         .div(PERCENT as f64) as u64;
 
         // transfer lancer fee
+        let lancer_fee_cpi_accounts = token::Transfer {
+            from: feature_token_account.to_account_info(),
+            to: lancer_dao_token_account.to_account_info(),
+            authority: program_authority.to_account_info(),
+        };
+
         token::transfer(
-            ctx.accounts.transfer_bounty_fee_context().with_signer(&transfer_signer), 
-        lancer_fee
+            CpiContext::new_with_signer(
+                token_program.to_account_info(), 
+                lancer_fee_cpi_accounts, 
+                &transfer_signer,
+            ),
+            lancer_fee
         )?;
 
-        ctx.accounts.feature_token_account.reload()?;
+        feature_token_account.reload()?;
 
         let completion_fee = (feature_data_account.amount as f64)
                                     .mul(COMPLETER_FEE as f64)
                                     .div(PERCENT as f64) as u64;
+
+        let completer_fee_cpi_accounts = token::Transfer {
+            from: feature_token_account.to_account_info(),
+            to: payout_account.to_account_info(),
+            authority: program_authority.to_account_info(),
+        };
+
         // pay the completer 95%(if not admin) or pay everything(if admin)
         token::transfer(
-        ctx.accounts.transfer_bounty_context().with_signer(&transfer_signer), 
+            CpiContext::new_with_signer(
+                token_program.to_account_info(), 
+                completer_fee_cpi_accounts, 
+                &transfer_signer,
+            ),
         completion_fee
         )?;
     }else // admin call
     {
+        let completer_fee_cpi_accounts = token::Transfer {
+            from: feature_token_account.to_account_info(),
+            to: payout_account.to_account_info(),
+            authority: program_authority.to_account_info(),
+        };
         // pay everything(if admin)
         token::transfer(
-        ctx.accounts.transfer_bounty_context().with_signer(&transfer_signer), 
+            CpiContext::new_with_signer(
+                token_program.to_account_info(), 
+                completer_fee_cpi_accounts, 
+                &transfer_signer,
+            ),
             feature_data_account.amount
         )?;
 
     }
 
+    feature_token_account.reload()?;
 
-    ctx.accounts.feature_token_account.reload()?;
-
-    if ctx.accounts.feature_token_account.amount != 0 // approveRequestPartial was used so send remaining funds to token acoount
+    if feature_token_account.amount != 0 // approveRequestPartial was used so send remaining funds to token acoount
     {
+        let lancer_fee_cpi_accounts = token::Transfer {
+            from: feature_token_account.to_account_info(),
+            to: lancer_dao_token_account.to_account_info(),
+            authority: program_authority.to_account_info(),
+        };
+
         token::transfer(
-            ctx.accounts.transfer_bounty_fee_context().with_signer(&transfer_signer), 
-            ctx.accounts.feature_token_account.amount    
+            CpiContext::new_with_signer(
+                token_program.to_account_info(), 
+                lancer_fee_cpi_accounts, 
+                &transfer_signer,
+            ),
+            feature_token_account.amount    
         )?;
     }
 
+    let close_cpi_accounts = token::CloseAccount {
+        account: feature_token_account.to_account_info(),
+        destination: creator.to_account_info(),
+        authority: program_authority.to_account_info(),
+    };
+
     // Close token account owned by program that stored funds
     token::close_account(
-            ctx.accounts.close_context().with_signer(&transfer_signer)
+        CpiContext::new_with_signer(
+            token_program.to_account_info(), 
+            close_cpi_accounts, 
+            &transfer_signer,
+        ),
     )
+
 }

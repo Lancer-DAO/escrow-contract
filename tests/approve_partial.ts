@@ -133,9 +133,9 @@ describe("approve partial tests", () => {
               tokenProgram: TOKEN_PROGRAM_ID,
             }).signers([creator]).rpc();
           }catch(err){
-            // console.log("err: ", err);
+
             assert.equal((err as AnchorError).error.errorMessage, "No Request Submitted yet")
-          }
+          }console.log("not caught")
           // submit request for merging(SubmitRequest)
           const submitRequestIx = await submitRequestInstruction(
             acc.unixTimestamp, 

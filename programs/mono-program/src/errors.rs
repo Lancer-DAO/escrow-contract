@@ -65,4 +65,10 @@ pub enum MonoError
 
     #[msg("Only Creator or Current Submitter can vote to cancel")]
     CannotVoteToCancel,
+
+    #[msg("This Pubkey is not a Valid Dispute Pubkey")]
+    InvalidDisputePubkey,
+
+    #[msg("Cannot Dispute Bounty")]
+    CannotDispute,
 }

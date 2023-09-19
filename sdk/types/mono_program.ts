@@ -2566,7 +2566,7 @@ export type MonoProgram = {
         "kind": "struct",
         "fields": [
           {
-            "name": "client",
+            "name": "creator",
             "type": "publicKey"
           },
           {
@@ -2584,6 +2584,18 @@ export type MonoProgram = {
           {
             "name": "amount",
             "type": "u64"
+          },
+          {
+            "name": "disputeAccountBump",
+            "type": "u8"
+          },
+          {
+            "name": "programAuthorityBump",
+            "type": "u8"
+          },
+          {
+            "name": "fundsTokenAccountBump",
+            "type": "u8"
           }
         ]
       }
@@ -2838,6 +2850,16 @@ export type MonoProgram = {
       "code": 6020,
       "name": "CannotVoteToCancel",
       "msg": "Only Creator or Current Submitter can vote to cancel"
+    },
+    {
+      "code": 6021,
+      "name": "InvalidDisputePubkey",
+      "msg": "This Pubkey is not a Valid Dispute Pubkey"
+    },
+    {
+      "code": 6022,
+      "name": "CannotDispute",
+      "msg": "Cannot Dispute Bounty"
     }
   ]
 };
@@ -5410,7 +5432,7 @@ export const IDL: MonoProgram = {
         "kind": "struct",
         "fields": [
           {
-            "name": "client",
+            "name": "creator",
             "type": "publicKey"
           },
           {
@@ -5428,6 +5450,18 @@ export const IDL: MonoProgram = {
           {
             "name": "amount",
             "type": "u64"
+          },
+          {
+            "name": "disputeAccountBump",
+            "type": "u8"
+          },
+          {
+            "name": "programAuthorityBump",
+            "type": "u8"
+          },
+          {
+            "name": "fundsTokenAccountBump",
+            "type": "u8"
           }
         ]
       }
@@ -5682,6 +5716,16 @@ export const IDL: MonoProgram = {
       "code": 6020,
       "name": "CannotVoteToCancel",
       "msg": "Only Creator or Current Submitter can vote to cancel"
+    },
+    {
+      "code": 6021,
+      "name": "InvalidDisputePubkey",
+      "msg": "This Pubkey is not a Valid Dispute Pubkey"
+    },
+    {
+      "code": 6022,
+      "name": "CannotDispute",
+      "msg": "Cannot Dispute Bounty"
     }
   ]
 };

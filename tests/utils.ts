@@ -3,6 +3,8 @@ import { createSyncNativeInstruction } from "@solana/spl-token";
 import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import fs from "fs";
 
+const MAX_NO_OF_SUBMITTERS = 5;
+
 export const createKeypair = async (
   provider: anchor.AnchorProvider
 ) => {
@@ -22,6 +24,7 @@ export const createKeypair = async (
 };
 
 export const createKeypairFromFile = async (
+  provider: anchor.AnchorProvider,
   filepath
 ) => {
   const path = require("path");
@@ -30,6 +33,20 @@ export const createKeypairFromFile = async (
   let kepairJson = JSON.parse(file);
   let buffers_8 = Uint8Array.from(kepairJson);
   let token_keypair = anchor.web3.Keypair.fromSecretKey(buffers_8);
+
+  // fund dispute_admin
+  const latestBlockHash = await provider.connection.getLatestBlockhash();
+    
+  const airdropSignature = await provider.connection.requestAirdrop(
+    token_keypair.publicKey,
+    10 * anchor.web3.LAMPORTS_PER_SOL
+  );
+  await provider.connection.confirmTransaction({
+      blockhash: latestBlockHash.blockhash,
+      lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+      signature: airdropSignature,    
+  });
+
 
   // console.log("token keypair = ", token_keypair.publicKey.toString());
   return token_keypair;
@@ -61,4 +78,29 @@ function wait(ms){
    while(end < start + ms) {
      end = new Date().getTime();
   }
+}
+
+export function getFeatureDataAccountLength()
+{
+  let unix_timestamp_length = 13;
+
+  return 8  +// Discriminator 
+  8 + //Amount
+  1  +// request_submitted
+  32 +// current_submitter
+  (32 * MAX_NO_OF_SUBMITTERS) +// approved_submitters
+  (4 * MAX_NO_OF_SUBMITTERS) + //approved submiiters share(in case of mulriple submitters)
+  32 +// creator
+  32 +// funds_mint
+  32 +// funds_account
+  32 +// payout_account
+  1  +// funder_cancel
+  1  +// payout_cancel
+  1  +// no_of_submitters
+  1  +// is_multiple_submitters
+  1  +// funds_token_account_bump
+  1  +// funds_data_account_bump
+  1  +// program_authority_bump    
+  (4 + unix_timestamp_length); // 4 + unix_timestamp
+
 }
