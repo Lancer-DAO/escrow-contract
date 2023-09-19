@@ -179,4 +179,9 @@ pub mod mono_program {
     {
         create_dispute::handler(ctx)
     }
+
+    pub fn settle_dispute(ctx: Context<SettleDispute>, submitter_amount: u64) -> Result<()>
+    {
+        settle_dispute::handler(ctx, submitter_amount)
+    }
 }

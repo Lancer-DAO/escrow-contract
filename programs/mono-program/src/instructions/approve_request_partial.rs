@@ -3,7 +3,7 @@
 use std::ops::{Mul, Div, Sub};
 
 use anchor_lang::prelude::*;
-use anchor_spl::token::{TokenAccount, Token, self, Transfer,};
+use anchor_spl::token::{TokenAccount, Token, self,};
 use remove_approved_submitters::remove_submitter;
 
 
@@ -159,7 +159,6 @@ pub fn partial_pay<'a>(
     amount: u64,
 ) -> Result<()>
 {
-    // let feature_data_account = &ctx.accounts.feature_data_account;
     require!(feature_data_account.amount > amount, MonoError::CannotWithdrawPartially);
 
     //TODO - test for this

@@ -30,6 +30,7 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 import {
+  findDisputeAccount,
   findFeatureAccount,
   findFeatureTokenAccount,
   findLancerCompanyTokens,
@@ -1040,7 +1041,7 @@ export const adminCloseBountyInstruction = async (
 
 export const createDisputeInstruction = async (
   timestamp,
-  dispute_key: PublicKey,
+  dispute_admin: PublicKey,
   creator: PublicKey,
   mint: PublicKey,
   program: Program<MonoProgram>,
@@ -1059,13 +1060,75 @@ export const createDisputeInstruction = async (
 
   const [program_authority] = await findProgramAuthority(program);
 
+  const [dispute_account] = await findDisputeAccount(
+    timestamp, 
+    creator, 
+    mint,
+    program
+  );
+
   return await program.methods.createDispute().accounts({
     creator: creator,
     featureDataAccount: feature_data_account,
     featureTokenAccount: feature_token_account,
     programAuthority: program_authority,
-    disputeAdmin: dispute_key,
+    disputeAdmin: dispute_admin,
+    disputeAccount: dispute_account,
     tokenProgram: TOKEN_PROGRAM_ID,
     systemProgram: SystemProgram.programId,
   }).instruction();
+}
+
+// TODO - make sure no instruction creates Token Accounts or make sure all instructions do
+export const settleDisputeInstruction = async (
+  timestamp,
+  dispute_admin: PublicKey,
+  creator: PublicKey,
+  submitter: PublicKey,
+  mint: PublicKey,
+  amount: number,
+  program: Program<MonoProgram>,
+) => {
+  const [feature_token_account] = await findFeatureTokenAccount(
+    timestamp,
+    creator,
+    mint,
+    program
+  );
+
+  const [program_authority] = await findProgramAuthority(program);
+
+  const [dispute_account] = await findDisputeAccount(
+    timestamp, 
+    creator, 
+    mint,
+    program
+  );
+  const [lancer_dao_token_account] = await findLancerTokenAccount(
+    mint,
+    program
+  );
+
+  const [lancer_token_program_authority] = await findLancerProgramAuthority(
+    program
+  );
+
+  const creator_token_account = await getAssociatedTokenAddress(mint, creator);
+  const submitter_token_account = await getAssociatedTokenAddress(mint, submitter);
+
+  return await program.methods.settleDispute(new anchor.BN(amount)).accounts({
+      disputeAdmin: dispute_admin,
+      creator: creator,
+      creatorTokenAccount: creator_token_account,
+      submitter: submitter,
+      submitterTokenAccount: submitter_token_account,
+      lancerDaoTokenAccount: lancer_dao_token_account,
+      lancerTokenProgramAuthority: lancer_token_program_authority,
+      disputeAccount: dispute_account,
+      featureTokenAccount: feature_token_account,
+      programAuthority: program_authority,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      systemProgram: SystemProgram.programId,
+  }).instruction();
+
 }

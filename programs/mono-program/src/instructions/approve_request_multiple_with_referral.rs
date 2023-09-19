@@ -1,7 +1,7 @@
-use std::{ops::{Add, Mul, Div, Sub}};
+use std::ops::{Add, Mul, Div, Sub};
 
 use anchor_lang::prelude::*;
-use anchor_spl::{token::{TokenAccount, Token, self, Transfer, CloseAccount, spl_token}};
+use anchor_spl::token::{TokenAccount, Token, self, Transfer, CloseAccount, spl_token};
 
 use crate::{constants::{MONO_DATA, REFERRER, PERCENT, LANCER_DAO, LANCER_ADMIN, LANCER_FEE}, state::FeatureDataAccount, errors::MonoError};
 use crate::constants::REFERRAL_FEE;
@@ -15,16 +15,16 @@ pub struct ApproveRequestMultipleWithReferral<'info>
     pub creator: Signer<'info>,
 
     #[account(
-    mut,
-    close = creator,
-    seeds = [
-    MONO_DATA.as_bytes(),
-    feature_data_account.unix_timestamp.as_ref(),
-    creator.key.as_ref(),
-    ],
-    bump = feature_data_account.funds_data_account_bump,
-    constraint = feature_data_account.creator == creator.key() @ MonoError::NotTheCreator,
-    constraint = feature_data_account.request_submitted == true @ MonoError::NoActiveRequest,
+        mut,
+        close = creator,
+        seeds = [
+            MONO_DATA.as_bytes(),
+            feature_data_account.unix_timestamp.as_ref(),
+            creator.key.as_ref(),
+        ],
+        bump = feature_data_account.funds_data_account_bump,
+        constraint = feature_data_account.creator == creator.key() @ MonoError::NotTheCreator,
+        constraint = feature_data_account.request_submitted == true @ MonoError::NoActiveRequest,
     )]
     pub feature_data_account: Box<Account<'info, FeatureDataAccount>>,
 

@@ -104,3 +104,18 @@ export function getFeatureDataAccountLength()
   (4 + unix_timestamp_length); // 4 + unix_timestamp
 
 }
+
+export function getDisputeAccountLength()
+{
+  let unix_timestamp_length = 13;
+
+  return 8  +// Discriminator 
+  32 + // creator
+  32 + // submitter
+  (4 + unix_timestamp_length) + // 4 + unix_timestamp
+  32 + // mint
+  8 + //amount
+  1 + //dispute_account_bump
+  1 + // program_authority_bump
+  1;// funds_token_account_bump
+}
