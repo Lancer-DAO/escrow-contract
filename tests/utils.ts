@@ -34,7 +34,7 @@ export const createKeypairFromFile = async (
   let buffers_8 = Uint8Array.from(kepairJson);
   let token_keypair = anchor.web3.Keypair.fromSecretKey(buffers_8);
 
-  // fund dispute_admin
+  
   const latestBlockHash = await provider.connection.getLatestBlockhash();
     
   const airdropSignature = await provider.connection.requestAirdrop(
