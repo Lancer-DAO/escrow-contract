@@ -630,7 +630,8 @@ export const setShareMultipleSubmittersInstruction = async (
 export const createReferralDataAccountInstruction = async (
   creator: PublicKey,
   feature_data_account: PublicKey,
-  program: Program<MonoProgram>
+  program: Program<MonoProgram>,
+  referrer?: PublicKey,
 ): Promise<TransactionInstruction> => {
   let [referral_data_account] = await findReferralDataAccount(
     creator,
@@ -638,11 +639,14 @@ export const createReferralDataAccountInstruction = async (
     program
   );
 
+  if (!referrer){ referrer = PublicKey.default; }
+
   return await program.methods
     .createReferralDataAccount()
     .accounts({
       creator: creator,
       featureDataAccount: feature_data_account,
+      referrer: referrer,
       referralDataAccount: referral_data_account,
       rent: SYSVAR_RENT_PUBKEY,
       systemProgram: SystemProgram.programId,
