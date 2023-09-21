@@ -9,8 +9,9 @@ crate-type = ["cdylib", "lib"]
 name = "mono_program"
 
 [features]
-default = ["localnet"]
+default = ["devnet"]
 mainnet = []
+devnet = []
 localnet = []
 no-entrypoint = []
 no-idl = []
