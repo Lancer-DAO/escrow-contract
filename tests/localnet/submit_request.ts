@@ -1,13 +1,13 @@
 import * as anchor from "@project-serum/anchor";
 import { AnchorError, Program } from "@project-serum/anchor";
 import { getOrCreateAssociatedTokenAccount } from "@solana/spl-token";
-import { MonoProgram } from "../sdk/types/mono_program";
-import  MonoProgramJSON  from "../sdk/idl/mono_program.json";
-import { MONO_DEVNET, WSOL_ADDRESS } from "../sdk/constants";
+import { MonoProgram } from "../../sdk/types/mono_program";
+import  MonoProgramJSON  from "../../sdk/idl/mono_program.json";
+import { MONO_DEVNET, WSOL_ADDRESS } from "../../sdk/constants";
 import { LAMPORTS_PER_SOL, PublicKey, Transaction } from "@solana/web3.js";
 import { add_more_token, createKeypair } from "./utils";
-import { findFeatureAccount, findProgramAuthority } from "../sdk/pda";
-import { addApprovedSubmittersInstruction, createFeatureFundingAccountInstruction, enableMultipleSubmittersInstruction, submitRequestInstruction, submitRequestMultipleInstruction } from "../sdk/instructions";
+import { findFeatureAccount, findProgramAuthority } from "../../sdk/pda";
+import { addApprovedSubmittersInstruction, createFeatureFundingAccountInstruction, enableMultipleSubmittersInstruction, submitRequestInstruction, submitRequestMultipleInstruction } from "../../sdk/instructions";
 import { assert } from "chai";
 
 describe("submit Request tests", () => {

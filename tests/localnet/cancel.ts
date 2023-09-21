@@ -1,13 +1,13 @@
 import * as anchor from "@project-serum/anchor";
 import { AnchorError, Program } from "@project-serum/anchor";
 import { getOrCreateAssociatedTokenAccount, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { MonoProgram } from "../sdk/types/mono_program";
-import  MonoProgramJSON  from "../sdk/idl/mono_program.json";
-import { COMPLETER_FEE, LANCER_FEE, MONO_DEVNET, WSOL_ADDRESS } from "../sdk/constants";
+import { MonoProgram } from "../../sdk/types/mono_program";
+import  MonoProgramJSON  from "../../sdk/idl/mono_program.json";
+import { COMPLETER_FEE, LANCER_FEE, MONO_DEVNET, WSOL_ADDRESS } from "../../sdk/constants";
 import { LAMPORTS_PER_SOL, PublicKey, Transaction } from "@solana/web3.js";
 import { add_more_token, createKeypair } from "./utils";
-import { findFeatureAccount, findFeatureTokenAccount, findProgramAuthority } from "../sdk/pda";
-import { addApprovedSubmittersInstruction, cancelFeatureInstruction, createFeatureFundingAccountInstruction, denyRequestInstruction, fundFeatureInstruction, submitRequestInstruction, voteToCancelInstruction } from "../sdk/instructions";
+import { findFeatureAccount, findFeatureTokenAccount, findProgramAuthority } from "../../sdk/pda";
+import { addApprovedSubmittersInstruction, cancelFeatureInstruction, createFeatureFundingAccountInstruction, denyRequestInstruction, fundFeatureInstruction, submitRequestInstruction, voteToCancelInstruction } from "../../sdk/instructions";
 import { assert } from "chai";
 
 describe("cancel feature tests", () => {

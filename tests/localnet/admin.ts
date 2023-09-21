@@ -1,15 +1,15 @@
 import * as anchor from "@project-serum/anchor";
 import { AnchorError, Program } from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, createAccount, createInitializeAccount3Instruction, createMint, createSyncNativeInstruction, getAccount, getMint, getOrCreateAssociatedTokenAccount, mintToChecked, NATIVE_MINT, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import  MonoProgramJSON  from "../sdk/idl/mono_program.json";
-import { COMPLETER_FEE, LANCER_ADMIN, LANCER_FEE, MINT_DECIMALS, MONO_DEVNET, WSOL_ADDRESS } from "../sdk/constants";
+import  MonoProgramJSON  from "../../sdk/idl/mono_program.json";
+import { COMPLETER_FEE, LANCER_ADMIN, LANCER_FEE, MINT_DECIMALS, MONO_DEVNET, WSOL_ADDRESS } from "../../sdk/constants";
 import { ComputeBudgetInstruction, ComputeBudgetProgram, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction } from "@solana/web3.js";
 import { add_more_token, createKeypair, createKeypairFromFile } from "./utils";
-import { findFeatureAccount, findFeatureTokenAccount, findLancerCompanyTokens, findLancerCompleterTokens, findLancerProgramAuthority, findLancerTokenAccount, findProgramAuthority, findProgramMintAuthority, findReferralDataAccount } from "../sdk/pda";
-import { addApprovedSubmittersInstruction, addApprovedSubmittersV1Instruction, adminCloseBountyInstruction, approveRequestInstruction, approveRequestMultipleTransaction, approveRequestPartialInstruction, cancelFeatureInstruction, createFeatureFundingAccountInstruction, createLancerTokenAccountInstruction, createReferralDataAccountInstruction, denyRequestInstruction, enableMultipleSubmittersInstruction, fundFeatureInstruction, removeApprovedSubmittersInstruction, removeApprovedSubmittersV1Instruction, setShareMultipleSubmittersInstruction, submitRequestInstruction, submitRequestMultipleInstruction, voteToCancelInstruction, withdrawTokensInstruction } from "../sdk/instructions";
+import { findFeatureAccount, findFeatureTokenAccount, findLancerCompanyTokens, findLancerCompleterTokens, findLancerProgramAuthority, findLancerTokenAccount, findProgramAuthority, findProgramMintAuthority, findReferralDataAccount } from "../../sdk/pda";
+import { addApprovedSubmittersInstruction, addApprovedSubmittersV1Instruction, adminCloseBountyInstruction, approveRequestInstruction, approveRequestMultipleTransaction, approveRequestPartialInstruction, cancelFeatureInstruction, createFeatureFundingAccountInstruction, createLancerTokenAccountInstruction, createReferralDataAccountInstruction, denyRequestInstruction, enableMultipleSubmittersInstruction, fundFeatureInstruction, removeApprovedSubmittersInstruction, removeApprovedSubmittersV1Instruction, setShareMultipleSubmittersInstruction, submitRequestInstruction, submitRequestMultipleInstruction, voteToCancelInstruction, withdrawTokensInstruction } from "../../sdk/instructions";
 import { assert } from "chai";
 import { min } from "bn.js";
-import { MonoProgram } from "../sdk/types/mono_program";
+import { MonoProgram } from "../../sdk/types/mono_program";
 import { rpc } from "@project-serum/anchor/dist/cjs/utils";
 import fs from "fs";
 

@@ -1,1 +1,1 @@
-yarn run ts-mocha -p ./tsconfig.json tests/retrieve_lost_contracts.ts
+yarn run ts-mocha -p ./tsconfig.json tests/mainnet/retrieve_lost_contracts.ts

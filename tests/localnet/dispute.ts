@@ -9,15 +9,15 @@ import {
   mintToChecked,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { MonoProgram } from "../sdk/types/mono_program";
-import MonoProgramJSON from "../sdk/idl/mono_program.json";
+import { MonoProgram } from "../../sdk/types/mono_program";
+import MonoProgramJSON from "../../sdk/idl/mono_program.json";
 import {
   COMPLETER_FEE,
   LANCER_FEE,
   MINT_DECIMALS,
   MONO_DEVNET,
   WSOL_ADDRESS,
-} from "../sdk/constants";
+} from "../../sdk/constants";
 import {
   LAMPORTS_PER_SOL,
   PublicKey,
@@ -33,7 +33,7 @@ import {
   findLancerProgramAuthority,
   findLancerTokenAccount,
   findProgramAuthority,
-} from "../sdk/pda";
+} from "../../sdk/pda";
 import {
   addApprovedSubmittersInstruction,
   approveRequestInstruction,
@@ -54,7 +54,7 @@ import {
   createDisputeInstruction,
   voteToCancelInstruction,
   settleDisputeInstruction,
-} from "../sdk/instructions";
+} from "../../sdk/instructions";
 import { assert, expect } from "chai";
 import { rpc } from "@project-serum/anchor/dist/cjs/utils";
 
@@ -77,7 +77,7 @@ describe("dispute tests ", () => {
         let submitter = await createKeypair(provider);
         // let funder = provider.publicKey;
         let mint_authority = await createKeypair(provider);
-        let dispute_admin = await createKeypairFromFile(provider, "../deploy/dispute_1.json");
+        let dispute_admin = await createKeypairFromFile(provider, "../../deploy/dispute_1.json");
 
         const special_mint = await createMint(
           provider.connection,
@@ -250,7 +250,7 @@ describe("dispute tests ", () => {
         let submitter = await createKeypair(provider);
         // let funder = provider.publicKey;
         let mint_authority = await createKeypair(provider);
-        let dispute_admin = await createKeypairFromFile(provider, "../deploy/dispute_2.json");
+        let dispute_admin = await createKeypairFromFile(provider, "../../deploy/dispute_2.json");
 
         const special_mint = await createMint(
           provider.connection,
@@ -431,7 +431,7 @@ describe("dispute tests ", () => {
         let submitter = await createKeypair(provider);
         // let funder = provider.publicKey;
         let mint_authority = await createKeypair(provider);
-        let dispute_admin = await createKeypairFromFile(provider, "../deploy/dispute_3.json");
+        let dispute_admin = await createKeypairFromFile(provider, "../../deploy/dispute_3.json");
 
         const special_mint = await createMint(
           provider.connection,
@@ -597,7 +597,7 @@ describe("dispute tests ", () => {
         let submitter = await createKeypair(provider);
         // let funder = provider.publicKey;
         let mint_authority = await createKeypair(provider);
-        let dispute_admin = await createKeypairFromFile(provider, "../deploy/admin.json");
+        let dispute_admin = await createKeypairFromFile(provider, "../../deploy/admin.json");
 
         const special_mint = await createMint(
           provider.connection,
@@ -765,7 +765,7 @@ describe("dispute tests ", () => {
         let submitter = await createKeypair(provider);
         // let funder = provider.publicKey;
         let mint_authority = await createKeypair(provider);
-        let dispute_admin = await createKeypairFromFile(provider, "../deploy/dispute_1.json");
+        let dispute_admin = await createKeypairFromFile(provider, "../../deploy/dispute_1.json");
 
         const special_mint = await createMint(
           provider.connection,
@@ -1030,11 +1030,11 @@ describe("dispute tests ", () => {
     })
 
     it("settle dispute paying uneven portions(when admin is the creator)",async () => {
-        let creator = await createKeypairFromFile(provider, "../deploy/admin.json");
+        let creator = await createKeypairFromFile(provider, "../../deploy/admin.json");
         let submitter = await createKeypair(provider);
         // let funder = provider.publicKey;
         let mint_authority = await createKeypair(provider);
-        let dispute_admin = await createKeypairFromFile(provider, "../deploy/dispute_1.json");
+        let dispute_admin = await createKeypairFromFile(provider, "../../deploy/dispute_1.json");
 
         const special_mint = await createMint(
           provider.connection,
@@ -1302,7 +1302,7 @@ describe("dispute tests ", () => {
         let submitter = await createKeypair(provider);
         // let funder = provider.publicKey;
         let mint_authority = await createKeypair(provider);
-        let dispute_admin = await createKeypairFromFile(provider, "../deploy/dispute_3.json");
+        let dispute_admin = await createKeypairFromFile(provider, "../../deploy/dispute_3.json");
 
         const special_mint = await createMint(
           provider.connection,
@@ -1567,11 +1567,11 @@ describe("dispute tests ", () => {
     })
 
     it("settle dispute when there's no pay for submitter and admin is the creator",async () => {
-        let creator = await createKeypairFromFile(provider, "../deploy/admin.json");
+        let creator = await createKeypairFromFile(provider, "../../deploy/admin.json");
         let submitter = await createKeypair(provider);
         // let funder = provider.publicKey;
         let mint_authority = await createKeypair(provider);
-        let dispute_admin = await createKeypairFromFile(provider, "../deploy/dispute_3.json");
+        let dispute_admin = await createKeypairFromFile(provider, "../../deploy/dispute_3.json");
 
         const special_mint = await createMint(
           provider.connection,
@@ -1841,7 +1841,7 @@ describe("dispute tests ", () => {
         let submitter = await createKeypair(provider);
         // let funder = provider.publicKey;
         let mint_authority = await createKeypair(provider);
-        let dispute_admin = await createKeypairFromFile(provider, "../deploy/dispute_3.json");
+        let dispute_admin = await createKeypairFromFile(provider, "../../deploy/dispute_3.json");
 
         const special_mint = await createMint(
           provider.connection,
@@ -2108,11 +2108,11 @@ describe("dispute tests ", () => {
 
 
     it("settle dispute when there's no pay for creator(also admin)",async () => {
-        let creator = await createKeypairFromFile(provider, "../deploy/admin.json");
+        let creator = await createKeypairFromFile(provider, "../../deploy/admin.json");
         let submitter = await createKeypair(provider);
         // let funder = provider.publicKey;
         let mint_authority = await createKeypair(provider);
-        let dispute_admin = await createKeypairFromFile(provider, "../deploy/dispute_3.json");
+        let dispute_admin = await createKeypairFromFile(provider, "../../deploy/dispute_3.json");
 
         const special_mint = await createMint(
           provider.connection,
