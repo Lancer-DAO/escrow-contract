@@ -1,29 +1,18 @@
 import * as anchor from "@project-serum/anchor";
-import { AnchorError, IdlTypes, Program } from "@project-serum/anchor";
+import { Program } from "@project-serum/anchor";
 import { MonoProgram } from "./types/mono_program";
 
 import {
-  createAssociatedTokenAccountInstruction,
-  getAccount,
-  createMint,
-  mintToChecked,
   getAssociatedTokenAddress,
   TOKEN_PROGRAM_ID,
-  NATIVE_MINT,
-  createSyncNativeInstruction,
   ASSOCIATED_TOKEN_PROGRAM_ID,
-  amountToUiAmount,
 } from "@solana/spl-token";
 
 import {
   ComputeBudgetProgram,
   Connection,
-  Keypair,
-  LAMPORTS_PER_SOL,
   PublicKey,
-  sendAndConfirmTransaction,
   Signer,
-  Struct,
   SystemProgram,
   SYSVAR_RENT_PUBKEY,
   Transaction,
@@ -33,17 +22,12 @@ import {
   findDisputeAccount,
   findFeatureAccount,
   findFeatureTokenAccount,
-  findLancerCompanyTokens,
-  findLancerCompleterTokens,
   findLancerProgramAuthority,
   findLancerTokenAccount,
   findProgramAuthority,
-  findProgramMintAuthority,
   findReferralDataAccount,
 } from "./pda";
 import { LANCER_ADMIN } from "./constants";
-import { min } from "bn.js";
-import { program } from "@project-serum/anchor/dist/cjs/native/system";
 
 export const createFeatureFundingAccountInstruction = async (
   mint: PublicKey,
@@ -653,6 +637,36 @@ export const createReferralDataAccountInstruction = async (
     })
     .instruction();
 };
+
+export const createCustodialReferralDataAccountInstruction = async (
+  creator: PublicKey,
+  custodial_fee_payer: PublicKey,
+  feature_data_account: PublicKey,
+  program: Program<MonoProgram>,
+  referrer?: PublicKey,
+): Promise<TransactionInstruction> => {
+  let [referral_data_account] = await findReferralDataAccount(
+    creator,
+    feature_data_account,
+    program
+  );
+
+  if (!referrer){ referrer = PublicKey.default; }
+
+  return await program.methods
+    .createCustodialReferralDataAccount()
+    .accounts({
+      creator: creator,
+      custodialFeePayer: custodial_fee_payer,
+      featureDataAccount: feature_data_account,
+      referrer: referrer,
+      referralDataAccount: referral_data_account,
+      rent: SYSVAR_RENT_PUBKEY,
+      systemProgram: SystemProgram.programId,
+    })
+    .instruction();
+};
+
 
 export const approveRequestMultipleTransaction = async (
   timestamp: string,

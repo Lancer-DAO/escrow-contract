@@ -11,19 +11,20 @@ mono_program = "LNCRQTZfeLMFHsSggvVc9kQWb1A98PEqHxVzBraWpQs"
 [programs.devnet]
 mono_program = "LAnCQFuCsqVgekkfYwZDoKjhZscnK1hbKuWQFNP9DXG"
 
-[test.validator]
-url = "https://api.devnet.solana.com"
-
-// clone Buddy Program on Devnet
-[[test.validator.clone]]
-address = "9zE4EQ5tJbEeMYwtS2w8KrSHTtTW4UPqwfbBSEkUrNCA"
-
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
 cluster = "localnet"
 wallet = "deploy/admin.json"
+
+[test.validator]
+url = "https://api.devnet.solana.com"
+
+#clone Buddy Program on Devnet
+[[test.validator.clone]]
+address = "9zE4EQ5tJbEeMYwtS2w8KrSHTtTW4UPqwfbBSEkUrNCA"
+
 
 [test]
 startup_wait = 60000

@@ -122,6 +122,11 @@ pub mod mono_program {
         create_referral_data_account::handler(ctx)
     }
 
+    pub fn create_custodial_referral_data_account<'info>(ctx: Context<'_, '_, '_, 'info, CreateCustodialReferralDataAccount<'info>>) -> Result<()>
+    {
+        create_custodial_referral_data_account::handler(ctx)
+    }
+
     pub fn add_approved_submitters_v1<'info>(ctx: Context<'_, '_, '_, 'info, AddApprovedSubmittersV1<'info>>) -> Result<()>
     {
         add_approved_submitters_v1::handler(ctx)
