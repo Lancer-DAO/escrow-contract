@@ -14,7 +14,7 @@ declare_id!("LNCRQTZfeLMFHsSggvVc9kQWb1A98PEqHxVzBraWpQs");
 #[cfg(feature = "devnet")]
 declare_id!("LAnCQFuCsqVgekkfYwZDoKjhZscnK1hbKuWQFNP9DXG");
 #[cfg(feature = "localnet")]
-declare_id!("Lag4h3EZK51MWC5L4VY7XeXmEmpo9TrAsgEhQXryHix");
+declare_id!("LAnCQFuCsqVgekkfYwZDoKjhZscnK1hbKuWQFNP9DXG");
 
 
 #[program]

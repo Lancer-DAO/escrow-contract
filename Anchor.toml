@@ -3,13 +3,19 @@ seeds = true
 skip-lint = false
 
 [programs.localnet]
-mono_program = "Lag4h3EZK51MWC5L4VY7XeXmEmpo9TrAsgEhQXryHix"
+mono_program = "LAnCQFuCsqVgekkfYwZDoKjhZscnK1hbKuWQFNP9DXG"
 
 [programs.mainnet]
 mono_program = "LNCRQTZfeLMFHsSggvVc9kQWb1A98PEqHxVzBraWpQs"
 
 [programs.devnet]
 mono_program = "LAnCQFuCsqVgekkfYwZDoKjhZscnK1hbKuWQFNP9DXG"
+
+[test.validator]
+url = "https://api.devnet.solana.com"
+
+[[test.validator.clone]]
+address = "9zE4EQ5tJbEeMYwtS2w8KrSHTtTW4UPqwfbBSEkUrNCA"
 
 [registry]
 url = "https://api.apr.dev"
