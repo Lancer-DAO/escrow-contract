@@ -8,11 +8,11 @@ use crate::utils::validate_referrer;
 pub struct CreateCustodialReferralDataAccount<'info>
 {
     #[account(mut)]
-    pub custodial_fee_payer: Signer<'info>,
+    pub custodial_fee_payer: SystemAccount<'info>,
 
     /// Check: Web3 auth can't allow 2 signers
-    #[account()]
-    pub creator: SystemAccount<'info>,
+    #[account(mut)]
+    pub creator: Signer<'info>,
 
     #[account(
         mut,

@@ -20,7 +20,7 @@ pub static LANCER_ADMIN: Pubkey = pubkey!("WbmLPptTGZTFK5ZSks7oaa4Qx69qS3jFXMrAs
 #[cfg(feature = "devnet")]
 pub static  LANCER_ADMIN: Pubkey = pubkey!("WbmLPptTGZTFK5ZSks7oaa4Qx69qS3jFXMrAsbWz1or");
 #[cfg(feature = "localnet")]
-pub static LANCER_ADMIN: Pubkey = pubkey!("WbmLPptTGZTFK5ZSks7oaa4Qx69qS3jFXMrAsbWz1or");
+pub static LANCER_ADMIN: Pubkey = pubkey!("admbKYEXAPNHZbzNADk7arzf8ZbDiZ9u4qzNS3XwRXx");
 
 pub const PERCENT: u64 = 100;
 pub const LANCER_DAO: &str = "LANCER_DAO";

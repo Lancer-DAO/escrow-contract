@@ -2,7 +2,7 @@ import * as anchor from "@project-serum/anchor";
 import { AnchorError, Program } from "@project-serum/anchor";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, createAccount, createInitializeAccount3Instruction, createMint, createSyncNativeInstruction, getAccount, getMint, getOrCreateAssociatedTokenAccount, mintToChecked, NATIVE_MINT, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import  MonoProgramJSON  from "../../sdk/idl/mono_program.json";
-import { COMPLETER_FEE, LANCER_FEE, MINT_DECIMALS, MONO_DEVNET, WSOL_ADDRESS } from "../../sdk/constants";
+import { COMPLETER_FEE, LANCER_FEE, MINT_DECIMALS, MONO_LOCALNET, WSOL_ADDRESS } from "../../sdk/constants";
 import { ComputeBudgetInstruction, ComputeBudgetProgram, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction } from "@solana/web3.js";
 import { add_more_token, createKeypair } from "./utils";
 import { findFeatureAccount, findFeatureTokenAccount, findLancerCompanyTokens, findLancerCompleterTokens, findLancerProgramAuthority, findLancerTokenAccount, findProgramAuthority, findProgramMintAuthority, findReferralDataAccount } from "../../sdk/pda";
@@ -18,7 +18,7 @@ describe("approve partial tests", () => {
   
     const program = new Program<MonoProgram>(
           MonoProgramJSON as unknown as MonoProgram, 
-          new PublicKey(MONO_DEVNET), 
+          new PublicKey(MONO_LOCALNET), 
           provider
       );
       const WSOL_AMOUNT = 2 * LAMPORTS_PER_SOL;

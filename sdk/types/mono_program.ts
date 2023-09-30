@@ -1504,12 +1504,12 @@ export type MonoProgram = {
         {
           "name": "custodialFeePayer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "creator",
-          "isMut": false,
-          "isSigner": false,
+          "isMut": true,
+          "isSigner": true,
           "docs": [
             "Check: Web3 auth can't allow 2 signers"
           ]
@@ -4615,12 +4615,12 @@ export const IDL: MonoProgram = {
         {
           "name": "custodialFeePayer",
           "isMut": true,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "creator",
-          "isMut": false,
-          "isSigner": false,
+          "isMut": true,
+          "isSigner": true,
           "docs": [
             "Check: Web3 auth can't allow 2 signers"
           ]

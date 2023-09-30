@@ -15,7 +15,7 @@ import {
   COMPLETER_FEE,
   LANCER_FEE,
   MINT_DECIMALS,
-  MONO_DEVNET,
+  MONO_LOCALNET,
   WSOL_ADDRESS,
 } from "../../sdk/constants";
 import {
@@ -67,7 +67,7 @@ describe("dispute tests ", () => {
 
     const program = new Program<MonoProgram>(
         MonoProgramJSON as unknown as MonoProgram,
-        new PublicKey(MONO_DEVNET),
+        new PublicKey(MONO_LOCALNET),
         provider
     );
     const WSOL_AMOUNT = 2 * LAMPORTS_PER_SOL;
