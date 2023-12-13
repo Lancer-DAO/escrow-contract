@@ -1,13 +1,13 @@
 import * as anchor from "@project-serum/anchor";
 import { AnchorError, Program } from "@project-serum/anchor";
 import { getOrCreateAssociatedTokenAccount } from "@solana/spl-token";
-import { MonoProgram } from "../sdk/types/mono_program";
-import  MonoProgramJSON  from "../sdk/idl/mono_program.json";
-import { MONO_DEVNET, WSOL_ADDRESS } from "../sdk/constants";
+import { MonoProgram } from "../../sdk/types/mono_program";
+import  MonoProgramJSON  from "../../sdk/idl/mono_program.json";
+import { MONO_LOCALNET, WSOL_ADDRESS } from "../../sdk/constants";
 import { LAMPORTS_PER_SOL, PublicKey, Transaction } from "@solana/web3.js";
 import { add_more_token, createKeypair } from "./utils";
-import { findFeatureAccount, findFeatureTokenAccount, findProgramAuthority } from "../sdk/pda";
-import { addApprovedSubmittersInstruction, createFeatureFundingAccountInstruction, denyRequestInstruction, fundFeatureInstruction, submitRequestInstruction } from "../sdk/instructions";
+import { findFeatureAccount, findFeatureTokenAccount, findProgramAuthority } from "../../sdk/pda";
+import { addApprovedSubmittersInstruction, createFeatureFundingAccountInstruction, denyRequestInstruction, fundFeatureInstruction, submitRequestInstruction } from "../../sdk/instructions";
 import { assert } from "chai";
 
 describe("deny Request tests", () => {
@@ -17,7 +17,7 @@ describe("deny Request tests", () => {
   
     const program = new Program<MonoProgram>(
           MonoProgramJSON as unknown as MonoProgram, 
-          new PublicKey(MONO_DEVNET), 
+          new PublicKey(MONO_LOCALNET), 
           provider
       );
       const WSOL_AMOUNT = 2 * LAMPORTS_PER_SOL;

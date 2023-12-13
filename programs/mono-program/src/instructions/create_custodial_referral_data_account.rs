@@ -5,8 +5,12 @@ use crate::utils::validate_referrer;
 
 
 #[derive(Accounts)]
-pub struct CreateReferralDataAccount<'info>
+pub struct CreateCustodialReferralDataAccount<'info>
 {
+    #[account(mut)]
+    pub custodial_fee_payer: SystemAccount<'info>,
+
+    /// Check: Web3 auth can't allow 2 signers
     #[account(mut)]
     pub creator: Signer<'info>,
 
@@ -24,7 +28,7 @@ pub struct CreateReferralDataAccount<'info>
 
     #[account(
         init,
-        payer = creator,
+        payer = custodial_fee_payer, 
         seeds = [
             REFERRER.as_bytes(),
             feature_data_account.key().as_ref(),
@@ -43,7 +47,7 @@ pub struct CreateReferralDataAccount<'info>
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, CreateReferralDataAccount<'info>>) -> Result<()>
+pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, CreateCustodialReferralDataAccount<'info>>) -> Result<()>
 {
     let referral_data_account = &mut ctx.accounts.referral_data_account;
     referral_data_account.referral_data_account_bump = *ctx.bumps.get("referral_data_account").unwrap();

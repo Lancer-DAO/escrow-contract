@@ -21,25 +21,25 @@ pub struct AddApprovedSubmittersV1<'info>
     pub submitter: SystemAccount<'info>,
 
     #[account(
-    mut,
-    seeds = [
-    MONO_DATA.as_bytes(),
-    feature_data_account.unix_timestamp.as_ref(),
-    creator.key.as_ref(),
-    ],
-    bump = feature_data_account.funds_data_account_bump,
-    constraint = feature_data_account.creator == creator.key() @ MonoError::NotTheCreator,
+        mut,
+        seeds = [
+            MONO_DATA.as_bytes(),
+            feature_data_account.unix_timestamp.as_ref(),
+            creator.key.as_ref(),
+        ],
+        bump = feature_data_account.funds_data_account_bump,
+        constraint = feature_data_account.creator == creator.key() @ MonoError::NotTheCreator,
     )]
     pub feature_data_account: Account<'info, FeatureDataAccount>,
 
     #[account(
-    mut,
-    seeds = [
-    REFERRER.as_bytes(),
-    feature_data_account.key().as_ref(),
-    creator.key.as_ref(),
-    ],
-    bump,
+        mut,
+        seeds = [
+            REFERRER.as_bytes(),
+            feature_data_account.key().as_ref(),
+            creator.key.as_ref(),
+        ],
+        bump = referral_data_account.referral_data_account_bump,
     )]
     pub referral_data_account: Account<'info, ReferralDataAccount>,
 

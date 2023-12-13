@@ -25,53 +25,53 @@ pub struct ApproveRequestWithReferral<'info>
     pub payout_account: Box<Account<'info, TokenAccount>>,
 
     #[account(
-    mut,
-    close = creator,
-    seeds = [
-    MONO_DATA.as_bytes(),
-    feature_data_account.unix_timestamp.as_ref(),
-    creator.key.as_ref(),
-    ],
-    bump = feature_data_account.funds_data_account_bump,
-    constraint = feature_data_account.creator == creator.key() @ MonoError::NotTheCreator,
-    constraint = feature_data_account.request_submitted == true @ MonoError::NoActiveRequest,
+        mut,
+        close = creator,
+        seeds = [
+            MONO_DATA.as_bytes(),
+            feature_data_account.unix_timestamp.as_ref(),
+            creator.key.as_ref(),
+        ],
+        bump = feature_data_account.funds_data_account_bump,
+        constraint = feature_data_account.creator == creator.key() @ MonoError::NotTheCreator,
+        constraint = feature_data_account.request_submitted == true @ MonoError::NoActiveRequest,
     )]
     pub feature_data_account: Box<Account<'info, FeatureDataAccount>>,
 
     #[account(
-    mut,
-    seeds = [
-    MONO_DATA.as_bytes(),
-    feature_data_account.unix_timestamp.as_ref(),
-    creator.key.as_ref(),
-    feature_data_account.funds_mint.key().as_ref(),
-    ],
-    bump = feature_data_account.funds_token_account_bump,
-    token::mint = feature_data_account.funds_mint,
-    token::authority = program_authority,
-    constraint = feature_token_account.mint == feature_data_account.funds_mint @ MonoError::InvalidMint
+        mut,
+        seeds = [
+            MONO_DATA.as_bytes(),
+            feature_data_account.unix_timestamp.as_ref(),
+            creator.key.as_ref(),
+            feature_data_account.funds_mint.key().as_ref(),
+        ],
+        bump = feature_data_account.funds_token_account_bump,
+        token::mint = feature_data_account.funds_mint,
+        token::authority = program_authority,
+        constraint = feature_token_account.mint == feature_data_account.funds_mint @ MonoError::InvalidMint
     )]
     pub feature_token_account: Box<Account<'info, TokenAccount>>,
 
     #[account(
-    mut,
-    seeds = [
-    MONO_DATA.as_bytes(),
-    LANCER_DAO.as_bytes(),
-    feature_token_account.mint.key().as_ref(),
-    ],
-    bump,
-    token::mint = feature_token_account.mint,
-    token::authority = lancer_token_program_authority,
+        mut,
+        seeds = [
+            MONO_DATA.as_bytes(),
+            LANCER_DAO.as_bytes(),
+            feature_token_account.mint.key().as_ref(),
+        ],
+        bump,
+        token::mint = feature_token_account.mint,
+        token::authority = lancer_token_program_authority,
     )]
     pub lancer_dao_token_account: Box<Account<'info, TokenAccount>>,
 
     ///CHECK: Controls lancer funds(Token)
     #[account(
-    seeds = [
-    LANCER_DAO.as_bytes(),
-    ],
-    bump,
+        seeds = [
+            LANCER_DAO.as_bytes(),
+        ],
+        bump,
     )]
     pub lancer_token_program_authority: UncheckedAccount<'info>,
 
@@ -87,12 +87,12 @@ pub struct ApproveRequestWithReferral<'info>
     pub token_program: Program<'info, Token>,
 
     #[account(
-    seeds = [
-    REFERRER.as_bytes(),
-    feature_data_account.key().as_ref(),
-    creator.key.as_ref(),
-    ],
-    bump = referral_data_account.referral_data_account_bump,
+        seeds = [
+            REFERRER.as_bytes(),
+            feature_data_account.key().as_ref(),
+            creator.key.as_ref(),
+        ],
+        bump = referral_data_account.referral_data_account_bump,
     )]
     pub referral_data_account: Account<'info, ReferralDataAccount>,
 

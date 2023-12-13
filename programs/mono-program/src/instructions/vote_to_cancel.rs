@@ -8,7 +8,12 @@ pub struct VoteToCancel<'info>
     #[account(mut)]
     pub creator: SystemAccount<'info>,
 
-    #[account(mut)]
+    #[account(
+        mut,
+        constraint = (voter.key() == feature_data_account.creator) || 
+                     (voter.key() == feature_data_account.current_submitter)
+         @ MonoError::CannotVoteToCancel,
+    )]
     pub voter: Signer<'info>,// could be creator or submitter
 
     #[account(
@@ -56,6 +61,8 @@ pub fn handler(ctx: Context<VoteToCancel>, is_cancel: bool,) -> Result<()>
             is_cancel == false
     {
         feature_data_account.payout_cancel = is_cancel;
+    }else {
+        return Err(MonoError::CannotVoteToCancel.into());
     }
 
     Ok(())
