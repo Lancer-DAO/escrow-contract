@@ -1,7 +1,8 @@
 {
   "scripts": {
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
-    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
+    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
+    "reclaim": "ts-node ./tests/mainnet/retrieve_lost_contracts.ts"
   },
   "dependencies": {
     "@project-serum/anchor": "^0.26.0",
