@@ -25,53 +25,53 @@ pub struct ApproveRequestWithReferral<'info>
     pub payout_account: Box<Account<'info, TokenAccount>>,
 
     #[account(
-    mut,
-    close = creator,
-    seeds = [
-    MONO_DATA.as_bytes(),
-    feature_data_account.unix_timestamp.as_ref(),
-    creator.key.as_ref(),
-    ],
-    bump = feature_data_account.funds_data_account_bump,
-    constraint = feature_data_account.creator == creator.key() @ MonoError::NotTheCreator,
-    constraint = feature_data_account.request_submitted == true @ MonoError::NoActiveRequest,
+        mut,
+        close = creator,
+        seeds = [
+            MONO_DATA.as_bytes(),
+            feature_data_account.unix_timestamp.as_ref(),
+            creator.key.as_ref(),
+        ],
+        bump = feature_data_account.funds_data_account_bump,
+        constraint = feature_data_account.creator == creator.key() @ MonoError::NotTheCreator,
+        constraint = feature_data_account.request_submitted == true @ MonoError::NoActiveRequest,
     )]
     pub feature_data_account: Box<Account<'info, FeatureDataAccount>>,
 
     #[account(
-    mut,
-    seeds = [
-    MONO_DATA.as_bytes(),
-    feature_data_account.unix_timestamp.as_ref(),
-    creator.key.as_ref(),
-    feature_data_account.funds_mint.key().as_ref(),
-    ],
-    bump = feature_data_account.funds_token_account_bump,
-    token::mint = feature_data_account.funds_mint,
-    token::authority = program_authority,
-    constraint = feature_token_account.mint == feature_data_account.funds_mint @ MonoError::InvalidMint
+        mut,
+        seeds = [
+            MONO_DATA.as_bytes(),
+            feature_data_account.unix_timestamp.as_ref(),
+            creator.key.as_ref(),
+            feature_data_account.funds_mint.key().as_ref(),
+        ],
+        bump = feature_data_account.funds_token_account_bump,
+        token::mint = feature_data_account.funds_mint,
+        token::authority = program_authority,
+        constraint = feature_token_account.mint == feature_data_account.funds_mint @ MonoError::InvalidMint
     )]
     pub feature_token_account: Box<Account<'info, TokenAccount>>,
 
     #[account(
-    mut,
-    seeds = [
-    MONO_DATA.as_bytes(),
-    LANCER_DAO.as_bytes(),
-    feature_token_account.mint.key().as_ref(),
-    ],
-    bump,
-    token::mint = feature_token_account.mint,
-    token::authority = lancer_token_program_authority,
+        mut,
+        seeds = [
+            MONO_DATA.as_bytes(),
+            LANCER_DAO.as_bytes(),
+            feature_token_account.mint.key().as_ref(),
+        ],
+        bump,
+        token::mint = feature_token_account.mint,
+        token::authority = lancer_token_program_authority,
     )]
     pub lancer_dao_token_account: Box<Account<'info, TokenAccount>>,
 
     ///CHECK: Controls lancer funds(Token)
     #[account(
-    seeds = [
-    LANCER_DAO.as_bytes(),
-    ],
-    bump,
+        seeds = [
+            LANCER_DAO.as_bytes(),
+        ],
+        bump,
     )]
     pub lancer_token_program_authority: UncheckedAccount<'info>,
 
@@ -87,12 +87,12 @@ pub struct ApproveRequestWithReferral<'info>
     pub token_program: Program<'info, Token>,
 
     #[account(
-    seeds = [
-    REFERRER.as_bytes(),
-    feature_data_account.key().as_ref(),
-    creator.key.as_ref(),
-    ],
-    bump = referral_data_account.referral_data_account_bump,
+        seeds = [
+            REFERRER.as_bytes(),
+            feature_data_account.key().as_ref(),
+            creator.key.as_ref(),
+        ],
+        bump = referral_data_account.referral_data_account_bump,
     )]
     pub referral_data_account: Account<'info, ReferralDataAccount>,
 
@@ -165,7 +165,7 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestWithReferral
             lancer_fee = lancer_fee.sub(referral_fee);
 
             if !transfer_reward_to_referrers(
-                &[referral_key],
+                &[referral_key, ctx.accounts.referral_data_account.approved_referrers[1]],
                 &ctx.accounts.feature_token_account.mint,
                 referral_fee,
                 vec![10_000],
@@ -174,7 +174,43 @@ pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, ApproveRequestWithReferral
                 &ctx.accounts.feature_token_account.to_account_info(),
                 &ctx.accounts.program_authority.to_account_info(),
                 &transfer_signer,
-                0,
+                2, //First one is bl program, second is mint
+                0, //No payout in remaining accounts
+                ctx.accounts.referral_data_account.creator_referrer != Pubkey::default(),
+            ) {
+                return Err(error!(MonoError::InvalidReferral));
+            }
+        }
+
+        //transfer creator referral fee
+        if ctx.accounts.referral_data_account.creator_referrer != Pubkey::default() {
+            // referral fee is 10% of lancer current fees
+            let referral_fee = fees
+                .mul(REFERRAL_FEE)
+                .div(PERCENT);
+
+            lancer_fee = lancer_fee.sub(referral_fee);
+
+            let starting_index = if referral_key != Pubkey::default() {
+                2
+            } else {
+                0
+            };
+
+            //To get the last token account
+            if !transfer_reward_to_referrers(
+                &[ctx.accounts.referral_data_account.creator_referrer, ctx.accounts.referral_data_account.creator_member],
+                &ctx.accounts.feature_token_account.mint,
+                referral_fee,
+                vec![10_000],
+                &ctx.remaining_accounts,
+                &ctx.accounts.token_program.to_account_info(),
+                &ctx.accounts.feature_token_account.to_account_info(),
+                &ctx.accounts.program_authority.to_account_info(),
+                &transfer_signer,
+                2 + starting_index, //bl, mint, referrer, referrer member
+                0, //No payout in remaining accounts
+                false,
             ) {
                 return Err(error!(MonoError::InvalidReferral));
             }

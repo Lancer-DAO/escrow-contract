@@ -4,18 +4,21 @@ use anchor_spl::token::{Mint, TokenAccount, Token, self};
 use crate::{constants::{MONO_DATA, PERCENT, FEE, LANCER_ADMIN}, state::FeatureDataAccount, errors::MonoError};
 
 #[derive(Accounts)]
-pub struct FundFeature<'info>
+pub struct ACHFundFeature<'info>
 {
     #[account(mut)]
-    pub creator: Signer<'info>,
+    pub external_funder: Signer<'info>,
+
+    #[account(mut)]
+    pub creator: SystemAccount<'info>,
 
     #[account(
         mut,
         token::mint = feature_data_account.funds_mint,
-        token::authority = creator,
-        constraint = creator_token_account.mint == feature_data_account.funds_mint
+        token::authority = external_funder,
+        constraint = external_funder_token_account.mint == feature_data_account.funds_mint
     )]
-    pub creator_token_account: Account<'info, TokenAccount>,
+    pub external_funder_token_account: Account<'info, TokenAccount>,
 
     #[account()]
     pub funds_mint: Account<'info, Mint>,
@@ -61,15 +64,15 @@ pub struct FundFeature<'info>
 
 }
 
-pub fn handler(ctx: Context<FundFeature>, amount: u64) -> Result<()>
+pub fn handler(ctx: Context<ACHFundFeature>, amount: u64) -> Result<()>
 {
     let feature_data_account = &mut ctx.accounts.feature_data_account;
 
     fund(
         feature_data_account, 
-        &ctx.accounts.creator_token_account, 
+        &ctx.accounts.external_funder_token_account, 
         &ctx.accounts.feature_token_account,
-        &ctx.accounts.creator.to_account_info(),
+        &&ctx.accounts.external_funder.to_account_info(),
         &ctx.accounts.token_program.to_account_info(),
         amount
     )
@@ -77,9 +80,9 @@ pub fn handler(ctx: Context<FundFeature>, amount: u64) -> Result<()>
 
 pub fn fund<'a>(
     feature_data_account: &mut FeatureDataAccount,
-    creator_token_account: &Account<'a, TokenAccount>,
+    funder_token_account: &Account<'a, TokenAccount>,
     feature_token_account: &Account<'a, TokenAccount>,
-    creator: &AccountInfo<'a>,
+    funder: &AccountInfo<'a>,
     token_program: &AccountInfo<'a>,
     amount: u64,
 ) -> Result<()>
@@ -105,15 +108,15 @@ pub fn fund<'a>(
     }
 
     require!(
-        creator_token_account.amount >= 
+        funder_token_account.amount >= 
         min_token_balance,
         MonoError::CannotPayFee,
     );
 
     let cpi_accounts = token::Transfer{
-            from: creator_token_account.to_account_info(),
+            from: funder_token_account.to_account_info(),
             to: feature_token_account.to_account_info(),
-            authority: creator.to_account_info(),
+            authority: funder.to_account_info(),
     };
 
     token::transfer(

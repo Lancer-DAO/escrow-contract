@@ -9,12 +9,17 @@ mod utils;
 
 use crate::instructions::*;
 
-
+#[cfg(feature = "mainnet")]
+declare_id!("LNCRQTZfeLMFHsSggvVc9kQWb1A98PEqHxVzBraWpQs");
+#[cfg(feature = "devnet")]
+declare_id!("LAnCQFuCsqVgekkfYwZDoKjhZscnK1hbKuWQFNP9DXG");
+#[cfg(feature = "localnet")]
 declare_id!("Lag4h3EZK51MWC5L4VY7XeXmEmpo9TrAsgEhQXryHix");
 
 
 #[program]
 pub mod mono_program {
+
     use super::*;
 
     pub fn create_feature_funding_account(
@@ -34,6 +39,11 @@ pub mod mono_program {
     pub fn fund_feature(ctx: Context<FundFeature>, amount: u64) -> Result<()>
     {
         fund_feature::handler(ctx, amount)
+    }
+
+    pub fn ach_fund_feature(ctx: Context<ACHFundFeature>, amount: u64) -> Result<()>
+    {
+        ach_fund_feature::handler(ctx, amount)
     }
 
     pub fn add_approved_submitters(ctx: Context<AddApprovedSubmitters>) -> Result<()>
@@ -107,9 +117,14 @@ pub mod mono_program {
     }
 
     // new functions to support update
-    pub fn create_referral_data_account(ctx: Context<CreateReferralDataAccount>) -> Result<()>
+    pub fn create_referral_data_account<'info>(ctx: Context<'_, '_, '_, 'info, CreateReferralDataAccount<'info>>) -> Result<()>
     {
         create_referral_data_account::handler(ctx)
+    }
+
+    pub fn create_custodial_referral_data_account<'info>(ctx: Context<'_, '_, '_, 'info, CreateCustodialReferralDataAccount<'info>>) -> Result<()>
+    {
+        create_custodial_referral_data_account::handler(ctx)
     }
 
     pub fn add_approved_submitters_v1<'info>(ctx: Context<'_, '_, '_, 'info, AddApprovedSubmittersV1<'info>>) -> Result<()>
@@ -132,6 +147,16 @@ pub mod mono_program {
         approve_request_multiple_with_referral::handler(ctx)
     }
 
+    // pub fn resize_referral_account<'info>(ctx: Context<'_, '_, '_, 'info, ResizeReferralAccount<'info>>) -> Result<()>
+    // {
+    //     resize_referral_account::handler(ctx)
+    // }
+    //
+    // pub fn add_referrer_member<'info>(ctx: Context<'_, '_, '_, 'info, AddReferrerMember<'info>>, referrer_members: Vec<Pubkey>) -> Result<()>
+    // {
+    //     add_referrer_member::handler(ctx, referrer_members)
+    // }
+
     pub fn send_invoice(ctx: Context<SendInvoice>, amount: u64) -> Result<()>
     {
         send_invoice::handler(ctx, amount)
@@ -150,5 +175,20 @@ pub mod mono_program {
     pub fn close_invoice(ctx: Context<CloseInvoice>,) -> Result<()>
     {
         close_invoice::handler(ctx)
+    }
+
+    pub fn admin_close_bounty(ctx: Context<AdminCloseBounty>, ) -> Result<()>
+    {
+        admin_close_bounty::handler(ctx)
+    }
+
+    pub fn create_dispute(ctx: Context<CreateDispute>, ) -> Result<()>
+    {
+        create_dispute::handler(ctx)
+    }
+
+    pub fn settle_dispute(ctx: Context<SettleDispute>, submitter_amount: u64) -> Result<()>
+    {
+        settle_dispute::handler(ctx, submitter_amount)
     }
 }

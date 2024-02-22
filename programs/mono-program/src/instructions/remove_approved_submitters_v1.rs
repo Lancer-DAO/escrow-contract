@@ -34,7 +34,7 @@ pub struct RemoveApprovedSubmittersV1<'info>
             feature_data_account.key().as_ref(),
             creator.key.as_ref(),
         ],
-        bump,
+        bump = referral_data_account.referral_data_account_bump,
     )]
     pub referral_data_account: Account<'info, ReferralDataAccount>,
 
