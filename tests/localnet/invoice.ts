@@ -8,15 +8,15 @@ import {
   mintToChecked,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { MonoProgram } from "../sdk/types/mono_program";
-import MonoProgramJSON from "../sdk/idl/mono_program.json";
+import { MonoProgram } from "../../sdk/types/mono_program";
+import MonoProgramJSON from "../../sdk/idl/mono_program.json";
 import {
   COMPLETER_FEE,
   LANCER_FEE,
   MINT_DECIMALS,
-  MONO_DEVNET,
+  MONO_LOCALNET,
   WSOL_ADDRESS,
-} from "../sdk/constants";
+} from "../../sdk/constants";
 import {
   LAMPORTS_PER_SOL,
   PublicKey,
@@ -31,7 +31,7 @@ import {
   findLancerProgramAuthority,
   findLancerTokenAccount,
   findProgramAuthority,
-} from "../sdk/pda";
+} from "../../sdk/pda";
 import {
   addApprovedSubmittersInstruction,
   approveRequestInstruction,
@@ -48,7 +48,7 @@ import {
   createLancerTokenAccountInstruction,
   rejectInvoiceInstruction,
   closeInvoiceInstruction,
-} from "../sdk/instructions";
+} from "../../sdk/instructions";
 import { assert, expect } from "chai";
 
 describe("invoice tests", () => {
@@ -58,7 +58,7 @@ describe("invoice tests", () => {
 
   const program = new Program<MonoProgram>(
     MonoProgramJSON as unknown as MonoProgram,
-    new PublicKey(MONO_DEVNET),
+    new PublicKey(MONO_LOCALNET),
     provider
   );
   const WSOL_AMOUNT = 2 * LAMPORTS_PER_SOL;

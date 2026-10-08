@@ -55,7 +55,7 @@ pub struct ACHFundFeature<'info>
         seeds = [
             MONO_DATA.as_bytes(),
         ],
-        bump
+        bump = feature_data_account.program_authority_bump,
     )]
     pub program_authority: SystemAccount<'info>,
 

@@ -9,8 +9,12 @@ mod utils;
 
 use crate::instructions::*;
 
-
+#[cfg(feature = "mainnet")]
 declare_id!("LNCRQTZfeLMFHsSggvVc9kQWb1A98PEqHxVzBraWpQs");
+#[cfg(feature = "devnet")]
+declare_id!("LAnCQFuCsqVgekkfYwZDoKjhZscnK1hbKuWQFNP9DXG");
+#[cfg(feature = "localnet")]
+declare_id!("Lag4h3EZK51MWC5L4VY7XeXmEmpo9TrAsgEhQXryHix");
 
 
 #[program]
@@ -118,6 +122,11 @@ pub mod mono_program {
         create_referral_data_account::handler(ctx)
     }
 
+    pub fn create_custodial_referral_data_account<'info>(ctx: Context<'_, '_, '_, 'info, CreateCustodialReferralDataAccount<'info>>) -> Result<()>
+    {
+        create_custodial_referral_data_account::handler(ctx)
+    }
+
     pub fn add_approved_submitters_v1<'info>(ctx: Context<'_, '_, '_, 'info, AddApprovedSubmittersV1<'info>>) -> Result<()>
     {
         add_approved_submitters_v1::handler(ctx)
@@ -166,5 +175,20 @@ pub mod mono_program {
     pub fn close_invoice(ctx: Context<CloseInvoice>,) -> Result<()>
     {
         close_invoice::handler(ctx)
+    }
+
+    pub fn admin_close_bounty(ctx: Context<AdminCloseBounty>, ) -> Result<()>
+    {
+        admin_close_bounty::handler(ctx)
+    }
+
+    pub fn create_dispute(ctx: Context<CreateDispute>, ) -> Result<()>
+    {
+        create_dispute::handler(ctx)
+    }
+
+    pub fn settle_dispute(ctx: Context<SettleDispute>, submitter_amount: u64) -> Result<()>
+    {
+        settle_dispute::handler(ctx, submitter_amount)
     }
 }

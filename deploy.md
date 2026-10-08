@@ -14,8 +14,12 @@ This will create a pubkey where the program will be deployed, the program will h
 You can obtain the generated address using 
 `solana address -k Lanc......json`
 
-Copy the pubkey of the generated address(Lanc.......json) and replace it in the constant(MONO_DEVNET) at `src/constants.ts` and `declare_id!("Lanc.....")` at `src/lib.rs`. Then replace constant(LANCER_ADMIN) in `sdk/constants.ts` and`src/constants.rs` with your `ADMIN_PUBKEY`. This tells the deployed contract to give restricted access to this pubkey alone.
+Copy the pubkey of the generated address(Lanc.......json) and replace it in the constant(MONO_DEVNET) at `src/constants.ts` and `declare_id!("Lanc.....")` at `src/lib.rs`. Then replace constant(LANCER_ADMIN) in `sdk/constants.ts` and`src/constants.rs` with your `ADMIN_PUBKEY`. 
+
+This tells the deployed contract to give restricted access to this pubkey alone.
 You can also replace the pubkey in `Anchor.toml`
+
+Add `"mainnet"` to `default = []` beneath the `features` flag in `Cargo.toml`
 
     [programs.localnet]
     mono_program = "LancmbegcoDpgsDHwkgyMA6Aezqh7uPrNCX5V4gsWx8"

@@ -1,4 +1,44 @@
 //test_cases.yaml
+admin tests:
+  test createLancerTokenAccount works:
+    instruction:
+      createLancerTokenAccount:
+        admin != creator: fail
+        admin = creator: pass
+
+  Admin can close spam Bounties:
+    instruction:
+      createFeatureFundingAccount: pass
+      fundFeature: pass
+      addApprovedSubmitters: pass
+      adminCloseBounty:
+        signer != admin: fail
+      adminCloseBounty: pass
+
+  Admin cannot close spam Bounties If submitter is present or pending submission:
+    instruction:
+      createFeatureFundingAccount: pass
+      fundFeature: pass
+      addApprovedSubmitters: pass
+      submitRequest: pass
+      adminCloseBounty:
+        request_submitted = true & current_submitter != null: fail
+      denyRequest: pass
+      submitRequest: pass
+      removeApprovedSubmitters: pass
+      adminCloseBounty:
+        request_submitted = true: fail
+      addApprovedSubmitters: pass
+      submitRequest: pass
+      voteToCancel(true): pass
+      adminCloseBounty:
+        payout_cancel = true: fail
+      submitRequest: pass
+      voteToCancel(false): pass
+      denyRequest: pass
+      adminCloseBounty: pass
+
+
 approve Request tests:
   test approveRequest:
     instruction:
@@ -145,12 +185,6 @@ approve Request tests:
       approveRequestMultipleWithReferral: pass
 
 approve partial tests:
-  test createLancerTokenAccount works:
-    instruction:
-      createLancerTokenAccount:
-        admin != creator: fail
-        admin = creator: pass
-
   test partial payment works:
     instruction:
       createFeatureFundingAccount: pass
@@ -223,7 +257,7 @@ cancel feature tests:
         creator = true: pass
       voteToCancel:
         submitter = true: pass
-      
+
   test cancelFeature:
     instruction:
       createFeatureFundingAccount: pass
@@ -234,6 +268,7 @@ cancel feature tests:
         funder_cancel = false & payout_cancel = false:
           "Cannot Cancel Feature": fail 
       denyRequest: pass
+      submitRequest: pass
       cancelFeature:
         funder_cancel = false & request_submitted = true:
           "Cannot Cancel Feature": fail
@@ -251,7 +286,7 @@ cancel feature tests:
       voteToCancel:
         submitter = true: pass
       cancelFeature: pass
-      
+
   cancel vote if creator = submitter:
     instruction:
       createFeatureFundingAccount: pass

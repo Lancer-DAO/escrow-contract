@@ -25,7 +25,7 @@ import {
     Transaction,
     TransactionInstruction,
   } from '@solana/web3.js';
-import { LANCER_ADMIN, LANCER_COMPANY_TOKENS, LANCER_COMPLETER_TOKENS, LANCER_DAO, MINT_AUTHORITY, MONO_DATA, REFERRER } from "./constants";
+import { DISPUTE, LANCER_ADMIN, LANCER_COMPANY_TOKENS, LANCER_COMPLETER_TOKENS, LANCER_DAO, MINT_AUTHORITY, MONO_DATA, REFERRER } from "./constants";
 import { program } from "@project-serum/anchor/dist/cjs/native/system";
   
 // TODO write docs on sdk functions
@@ -139,6 +139,11 @@ export const findLancerCompleterTokens = async (
     )    
 }
 
+/**
+ * 
+ * @param program 
+ * @returns 
+ */
 export const findLancerCompanyTokens = async (
     program: Program<MonoProgram>
 ): Promise<[anchor.web3.PublicKey, number]> => {
@@ -172,6 +177,23 @@ export const findReferralDataAccount = async (
             Buffer.from(REFERRER),
             feature_data_account.toBuffer(),
             creator.toBuffer()
+        ],
+        program.programId
+    )
+}
+
+export const findDisputeAccount = async (
+    timestamp: string,
+    creator: PublicKey,
+    mint: PublicKey,
+    program: Program<MonoProgram>,
+) => {
+    return await anchor.web3.PublicKey.findProgramAddressSync(
+        [
+            Buffer.from(DISPUTE),
+            anchor.utils.bytes.utf8.encode(timestamp),
+            creator.toBuffer(),
+            mint.toBuffer()
         ],
         program.programId
     )

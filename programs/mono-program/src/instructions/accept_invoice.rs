@@ -62,7 +62,7 @@ pub struct AcceptInvoice<'info>
         seeds = [
             MONO_DATA.as_bytes(),
         ],
-        bump
+        bump = feature_data_account.program_authority_bump,
     )]
     pub program_authority: UncheckedAccount<'info>,
 
@@ -142,7 +142,7 @@ pub fn handler(
     new_feature_data_account.is_multiple_submitters = false;
     new_feature_data_account.funds_data_account_bump = *ctx.bumps.get("new_feature_data_account").unwrap();
     new_feature_data_account.funds_token_account_bump = *ctx.bumps.get("new_feature_token_account").unwrap();
-    new_feature_data_account.program_authority_bump = *ctx.bumps.get("program_authority").unwrap();
+    new_feature_data_account.program_authority_bump = old_feature_data_account.program_authority_bump;
 
     // Fund New Bounty
     fund(
